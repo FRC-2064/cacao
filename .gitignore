@@ -1,0 +1,14 @@
+node_modules/
+node_modules
+.svelte-kit/
+build/
+.vercel/
+.env
+.env.*
+!.env.example
+.DS_Store
+
+# Agent tooling
+.claude/
+.agents/
+skills-lock.json
