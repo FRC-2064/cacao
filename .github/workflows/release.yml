@@ -1,0 +1,98 @@
+name: Release
+
+# Vercel cannot build from a tag on its own -- its Git integration only ever
+# watches branches -- so tagging is wired up here instead. Pushing a version
+# tag is the single action that puts a release on finance.2064.team.
+#
+#     npm version minor        # or edit package.json and tag by hand
+#     git push origin trunk --follow-tags
+#
+# The pattern matches both `0.1.0` and `v0.1.0`, so neither convention breaks
+# a release later on.
+on:
+  push:
+    tags:
+      - '*.*.*'
+  # A release that deploys code failing its own tests is worse than no release,
+  # so the gate below can also be run by hand against a branch first.
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Tests and typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # svelte-check needs the generated types, and `npm ci` does not run the
+      # prepare step that would create them.
+      - run: npx svelte-kit sync
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Typecheck
+        run: npm run check
+
+      # `npm run check` uses the root tsconfig, whose include list is
+      # `../src/**` and `../test(s)/**` -- so nothing above this line
+      # typechecks `convex/`, test files included, and vitest does not
+      # typecheck at all. That gap let eight type errors in
+      # `convex/gates.test.ts` reach the branch unseen.
+      #
+      # It is a release blocker rather than a tidiness one:
+      # `npm run build:vercel` is `convex deploy --cmd 'npm run build'`, whose
+      # `--typecheck` defaults to `"try"`, and `"try"` tolerates a *missing*
+      # tsconfig but exits 1 on a *failing* typecheck in every mode. A type
+      # error in `convex/` therefore aborts the deploy before the schema is
+      # pushed. Fail here instead, where nothing is half-deployed.
+      - name: Convex typecheck
+        run: npm run check:convex
+
+  deploy:
+    name: Deploy to production
+    needs: verify
+    runs-on: ubuntu-latest
+    # Nothing is published unless a tag was pushed; a manual dispatch runs the
+    # gate above and stops there.
+    if: startsWith(github.ref, 'refs/tags/')
+    environment:
+      name: production
+      url: https://finance.2064.team
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The build itself happens on Vercel, which is where CONVEX_DEPLOY_KEY
+      # lives -- so `npm run build:vercel` pushes the Convex functions and
+      # builds the frontend against the production deployment there, and this
+      # job only has to ask for it.
+      - name: Deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: npx vercel@59 deploy --prod --yes --token="$VERCEL_TOKEN"
+
+      - name: Summarise
+        run: |
+          {
+            echo "### Released \`${GITHUB_REF_NAME}\`"
+            echo
+            echo "- Site: <https://finance.2064.team>"
+            echo "- Convex: \`festive-lion-592\` (production)"
+          } >> "$GITHUB_STEP_SUMMARY"

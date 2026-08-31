@@ -1,0 +1,44 @@
+{
+  "name": "cacao",
+  "version": "0.4.2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev --host 0.0.0.0 --port 5173",
+    "dev:convex": "convex dev",
+    "sync:test-data": "bash scripts/sync-test-data.sh",
+    "generate:dataset": "node scripts/import/generate.ts",
+    "build": "vite build",
+    "build:vercel": "if [ -n \"$CONVEX_DEPLOY_KEY\" ]; then convex deploy --cmd 'npm run build' --cmd-url-env-var-name PUBLIC_CONVEX_URL; else npm run build; fi",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check:convex": "tsc --noEmit -p convex",
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@edge-runtime/vm": "^5.0.0",
+    "@sveltejs/adapter-vercel": "^5.6.3",
+    "@sveltejs/kit": "^2.17.3",
+    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@tailwindcss/vite": "^4.0.9",
+    "@types/d3-sankey": "^0.12.5",
+    "@types/node": "^26.4.0",
+    "convex-test": "^0.0.56",
+    "d3-sankey": "^0.12.3",
+    "lucide-svelte": "^0.475.0",
+    "svelte": "^5.20.2",
+    "svelte-check": "^4.1.4",
+    "tailwindcss": "^4.0.9",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.1",
+    "vitest": "^3.2.7"
+  },
+  "dependencies": {
+    "convex": "^1.19.4"
+  },
+  "overrides": {
+    "utf-8-validate": "^6.0.6"
+  }
+}

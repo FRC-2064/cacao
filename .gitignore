@@ -1,0 +1,41 @@
+node_modules/
+node_modules
+.svelte-kit/
+build/
+.vercel/
+.env
+.env.*
+!.env.example
+.DS_Store
+
+# Agent tooling
+.claude/
+.agents/
+skills-lock.json
+
+# Production data snapshots. These contain every student email the
+# PII removal exists to delete -- never commit one.
+snapshots/
+
+# The team's raw sheet exports. Same reason as snapshots/, and this repo is
+# public: g_teaminfo.csv carries a mentor's cell number and personal email,
+# g_pipeline.csv fourteen students' full names in its "Assigned To" column,
+# g_sponsors.csv an "Assigned Student" column, and hcb-transactions.json
+# donor addresses. `generate.ts` exists precisely so none of that reaches
+# src/lib/data/teamData.ts -- checking the inputs in defeated the point.
+# Keep them locally to re-run the generator; do not commit them.
+scripts/import/data/
+
+# The generated seed payload. This is a one-time import file, not app data:
+# after the cutover the contacts live in Convex and this is a second copy of
+# them, holding 31 sponsor contacts with emails, phone numbers and addresses.
+# Nothing the app serves to a user reads it -- only the import panel, the
+# generator, and their tests -- so it stays local, and the whole import
+# scaffold is deleted once the import has run (Task 11, Step 12).
+src/lib/data/teamData.ts
+
+# Agent working notes: task briefs, reports and the running ledger. These
+# quote the very data the rest of this file exists to keep out -- a mentor's
+# phone number and email, student surnames -- because that is what the reviews
+# were about. Never commit them.
+.superpowers/
