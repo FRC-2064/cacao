@@ -42,3 +42,42 @@ test('api.audit.list rejects an unauthenticated caller', async () => {
   const t = convexTest(schema);
   await expect(t.query(api.audit.list, {})).rejects.toThrow('Not signed in.');
 });
+
+/**
+ * The call shape `cacaoStore.subscribeToConvex` actually sends.
+ *
+ * `args: {}` rejected it -- "Unexpected field `limit` in object" -- and the
+ * feed read empty on a database full of rows. Nothing caught it: the args type
+ * for an empty validator is `{}`, which accepts any object, and the store
+ * swallows this subscription's errors while signed out. So the guard has to be
+ * a test, and it has to send `limit` the way the client does rather than the
+ * `{}` every other test here sends.
+ */
+test('api.audit.list accepts the { limit } the client subscribes with', async () => {
+  const t = convexTest(schema);
+  const as = t.withIdentity({ tokenIdentifier: 'https://accounts.google.com|audit3' });
+  const userId = await as.mutation(api.auth.ensureUser, {});
+  await t.run(async (ctx) => {
+    await ctx.db.patch('users', userId, { role: 'admin', firstName: 'Levi', lastInitial: 'F' });
+  });
+
+  await as.mutation(api.teamInfo.create, { label: 'EIN', value: '12-3456789' });
+
+  expect(await as.query(api.audit.list, { limit: 200 })).toHaveLength(1);
+});
+
+test('api.audit.list honours a limit smaller than the row count', async () => {
+  const t = convexTest(schema);
+  const as = t.withIdentity({ tokenIdentifier: 'https://accounts.google.com|audit4' });
+  const userId = await as.mutation(api.auth.ensureUser, {});
+  await t.run(async (ctx) => {
+    await ctx.db.patch('users', userId, { role: 'admin', firstName: 'Levi', lastInitial: 'F' });
+  });
+
+  await as.mutation(api.teamInfo.create, { label: 'EIN', value: '12-3456789' });
+  await as.mutation(api.teamInfo.create, { label: 'Mailing address', value: 'PO Box 1' });
+  await as.mutation(api.teamInfo.create, { label: 'Website', value: 'frc2064.org' });
+
+  expect(await as.query(api.audit.list, { limit: 2 })).toHaveLength(2);
+  expect(await as.query(api.audit.list, {})).toHaveLength(3);
+});
