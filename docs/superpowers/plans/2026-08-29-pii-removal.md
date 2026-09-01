@@ -1341,8 +1341,21 @@ npx convex env set --prod GOOGLE_CLIENT_ID "<client-id>"
 npx convex env set --prod GOOGLE_CLIENT_SECRET "<client-secret>"
 npx convex env set --prod APP_URL "http://localhost:5173"
 npx convex env set --prod ADMIN_BOOTSTRAP_SECRET "$SECRET"
-npx convex env remove --prod CLERK_JWT_ISSUER_DOMAIN
 ```
+
+**Do not remove `CLERK_JWT_ISSUER_DOMAIN` here.** Convex refuses to unset a
+variable the *currently deployed* auth config references, and production is
+still running the old one:
+
+```
+AuthConfigMissingEnvironmentVariable: Environment variable
+CLERK_JWT_ISSUER_DOMAIN is used in auth config file but its value was not set
+```
+
+Record its value now (`npx convex env get --prod CLERK_JWT_ISSUER_DOMAIN`) for
+the rollback, and remove it in Step 6 once the new config is live. Leaving it
+set does not block the deploy — the new `auth.config.ts` never reads it, and an
+unused variable is inert.
 
 This runs before the deploy on purpose. `convex/auth.config.ts` reads
 `GOOGLE_CLIENT_ID`, and the backend rejects a push whose auth config names an
@@ -1388,6 +1401,12 @@ npx convex deploy
 
 `deploy` is the one command that already defaults to production. Expected:
 succeeds. A schema validation failure here means Step 4 left rows behind.
+
+Now that the new auth config is live, Clerk's variable can go:
+
+```bash
+npx convex env remove --prod CLERK_JWT_ISSUER_DOMAIN
+```
 
 - [ ] **Step 7: Sign in and claim admin — BEFORE the import, not after**
 
