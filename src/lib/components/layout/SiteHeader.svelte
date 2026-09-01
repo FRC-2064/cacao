@@ -1,10 +1,10 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { cacao } from '$lib/stores/cacaoStore.svelte';
-  import { theme } from '$lib/stores/theme.svelte';
+  import { theme } from '$lib/theme';
   import { visibleNavItems, pendingFor, isActive } from '$lib/nav';
-  import { initialsOf } from '@frc2064/ui';
-  import { Sun, Moon, X } from 'lucide-svelte';
+  import { initialsOf, ThemeToggle } from '@frc2064/ui';
+  import { X } from 'lucide-svelte';
 
   interface Props {
     onopenprofile: () => void;
@@ -109,18 +109,7 @@
         </span>
       {/if}
 
-      <button
-        type="button"
-        onclick={() => theme.toggle()}
-        class="icon-btn"
-        title={theme.resolved === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-      >
-        {#if theme.resolved === 'dark'}
-          <Sun size={20} />
-        {:else}
-          <Moon size={20} />
-        {/if}
-      </button>
+      <ThemeToggle {theme} />
 
       <button
         type="button"

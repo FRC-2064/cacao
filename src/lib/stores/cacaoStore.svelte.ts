@@ -1,4 +1,5 @@
 import { browser } from '$app/environment';
+import { toasts } from '@frc2064/ui';
 import type {
   Grant,
   Sponsor,
@@ -308,7 +309,6 @@ class CacaoStore {
   selectedSeason = $state<string>('');
   selectedAssignee = $state<string>('all');
   selectedExpenseCategory = $state<string>('all');
-  toastMessage = $state<{ text: string; type: 'success' | 'info' | 'error' } | null>(null);
 
   /** True until the first snapshot of each table lands. */
   isLoading = $state<boolean>(isConvexEnabled);
@@ -639,13 +639,13 @@ class CacaoStore {
     this.requestsUnsubscribe = null;
   }
 
+  /**
+   * Kept as a method on the store because every mutation's failure path calls
+   * it; the state itself now lives in the library so the component that
+   * renders it can be shared.
+   */
   showToast(text: string, type: 'success' | 'info' | 'error' = 'success') {
-    this.toastMessage = { text, type };
-    setTimeout(() => {
-      if (this.toastMessage?.text === text) {
-        this.toastMessage = null;
-      }
-    }, 4000);
+    toasts.show(text, type);
   }
 
   // ── Seasons & accounts ───────────────────────────────────────────────

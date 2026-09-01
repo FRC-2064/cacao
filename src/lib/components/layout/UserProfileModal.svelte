@@ -1,10 +1,10 @@
 <script lang="ts">
   import { cacao } from '$lib/stores/cacaoStore.svelte';
-  import { theme, type ThemePreference } from '$lib/stores/theme.svelte';
-  import { M3Modal, M3Input, SegmentedToggle, type SegmentedOption, initialsOf } from '@frc2064/ui';
+  import { theme } from '$lib/theme';
+  import { M3Modal, M3Input, ThemePicker, initialsOf } from '@frc2064/ui';
   import { firstNameProblem } from '../../../../convex/personNames';
   import { goto } from '$app/navigation';
-  import { LogOut, Monitor, Moon, ShieldQuestion, Sun } from 'lucide-svelte';
+  import { LogOut, ShieldQuestion } from 'lucide-svelte';
 
   interface Props {
     open: boolean;
@@ -12,12 +12,6 @@
   }
 
   let { open = $bindable(false), onclose }: Props = $props();
-
-  const themeOptions: SegmentedOption[] = [
-    { value: 'light', label: 'Light', icon: Sun },
-    { value: 'dark', label: 'Dark', icon: Moon },
-    { value: 'system', label: 'System', icon: Monitor }
-  ];
 
   /**
    * A first name and one letter is the whole of what this app knows about a
@@ -214,16 +208,7 @@
 
     <div>
       <span class="field-label mb-2 block">Appearance</span>
-      <!-- Reported through `onchange` rather than bound: writing
-           `theme.preference` alone would leave localStorage and
-           `<html data-theme>` stale, which is what `theme.set` is for. -->
-      <SegmentedToggle
-        options={themeOptions}
-        value={theme.preference}
-        onchange={(v) => theme.set(v as ThemePreference)}
-        class="segmented-full"
-        ariaLabel="Appearance"
-      />
+      <ThemePicker {theme} />
     </div>
 
     <div class="flex justify-end pt-1">
