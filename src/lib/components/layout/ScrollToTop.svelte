@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ArrowUp } from 'lucide-svelte';
   import { fly } from 'svelte/transition';
-  import { dur, fastSpatial, emphasizedAccel } from '$lib/motion';
+  import { dur, fastSpatial, emphasizedAccel } from '@frc2064/ui/motion';
 
   /**
    * Back-to-top for the long list views. A season's worth of expenses runs to

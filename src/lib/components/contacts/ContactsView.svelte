@@ -6,7 +6,7 @@
   import { Plus, Mail, Phone, Building2, Pencil } from 'lucide-svelte';
   import { fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';
-  import { listItem } from '$lib/motion';
+  import { listItem } from '@frc2064/ui/motion';
 
   let selectedContactForEdit = $state<Contact | null>(null);
   let isAddModalOpen = $state(false);

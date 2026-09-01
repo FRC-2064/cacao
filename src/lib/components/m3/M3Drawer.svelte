@@ -2,7 +2,7 @@
   import type { Snippet } from 'svelte';
   import { X } from 'lucide-svelte';
   import { fade, fly } from 'svelte/transition';
-  import { dur, defaultSpatial, fastEffects, emphasizedAccel } from '$lib/motion';
+  import { dur, defaultSpatial, fastEffects, emphasizedAccel } from '@frc2064/ui/motion';
 
   interface Props {
     open: boolean;

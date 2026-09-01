@@ -10,7 +10,7 @@
   import { goto } from '$app/navigation';
   import { cacao } from '$lib/stores/cacaoStore.svelte';
   import { fly } from 'svelte/transition';
-  import { dur, emphasizedDecel } from '$lib/motion';
+  import { dur, emphasizedDecel } from '@frc2064/ui/motion';
   import type { Snippet } from 'svelte';
 
   interface Props {

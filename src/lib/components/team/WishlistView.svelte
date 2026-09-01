@@ -8,7 +8,7 @@
   import { Plus, Pencil, Trash2, ExternalLink } from 'lucide-svelte';
   import { fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';
-  import { listItem } from '$lib/motion';
+  import { listItem } from '@frc2064/ui/motion';
 
   const items = $derived(cacao.orderedWishlist);
   const isViewer = $derived(cacao.currentUser.role === 'viewer');

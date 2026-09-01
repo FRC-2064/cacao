@@ -8,7 +8,7 @@
   import { Plus, Send, Mail, AlertCircle, Clock } from 'lucide-svelte';
   import { fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';
-  import { listItem } from '$lib/motion';
+  import { listItem } from '@frc2064/ui/motion';
 
   let activeTierFilter = $state<string>('all');
   let selectedSponsorForEdit = $state<Sponsor | null>(null);

@@ -5,7 +5,7 @@
   import { Download, ExternalLink, FileText, ChevronUp, ChevronDown, Plus } from 'lucide-svelte';
   import { fade, fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';
-  import { listItem, listRow } from '$lib/motion';
+  import { listItem, listRow } from '@frc2064/ui/motion';
 
   interface Props {
     onselectgrant: (grant: Grant) => void;

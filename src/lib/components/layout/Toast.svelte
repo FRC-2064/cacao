@@ -2,7 +2,7 @@
   import { cacao } from '$lib/stores/cacaoStore.svelte';
   import { CheckCircle2, Info, AlertCircle, X } from 'lucide-svelte';
   import { fly } from 'svelte/transition';
-  import { dur, fastSpatial, emphasizedAccel } from '$lib/motion';
+  import { dur, fastSpatial, emphasizedAccel } from '@frc2064/ui/motion';
 </script>
 
 {#if cacao.toastMessage}

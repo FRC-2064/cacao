@@ -32,7 +32,7 @@
   } from 'lucide-svelte';
   import { fade, fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';
-  import { listItem, listRow } from '$lib/motion';
+  import { listItem, listRow } from '@frc2064/ui/motion';
 
   let selectedDepositForEdit = $state<IncomeDeposit | null>(null);
   let isAddDepositModalOpen = $state(false);

@@ -7,7 +7,7 @@
   import { Plus, Copy, Check, Pencil, Trash2, ChevronUp, ChevronDown } from 'lucide-svelte';
   import { fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';
-  import { listItem } from '$lib/motion';
+  import { listItem } from '@frc2064/ui/motion';
 
   const fields = $derived(cacao.orderedTeamInfo);
   const isAdmin = $derived(cacao.currentUser.role === 'admin');

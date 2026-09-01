@@ -12,7 +12,7 @@
   import { Download, RefreshCw, ChevronRight } from 'lucide-svelte';
   import { fade, fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';
-  import { listItem, listRow } from '$lib/motion';
+  import { listItem, listRow } from '@frc2064/ui/motion';
 
   const ALL = 'all' as const;
 
