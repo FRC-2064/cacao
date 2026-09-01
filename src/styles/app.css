@@ -600,6 +600,18 @@ body {
     padding: 2px;
     border-radius: var(--shape-full);
     background: var(--color-surface-container-high);
+    /* The pill's spatial easing overshoots (--ease-default-spatial ends past
+       1), so mid-travel it reaches beyond the strip -- far beyond it, on a
+       long hop like Dashboard to Admin, because the overshoot is a share of
+       the distance covered. That overflow was reaching the header's
+       `overflow-x-auto` nav, which answered with a horizontal scrollbar that
+       flashed under the tabs for the length of the animation. `clip` keeps
+       the bounce from being scrollable overflow at all (unlike `hidden`, it
+       creates no scroll container); the clip margin leaves room for a focus
+       ring on the end tabs, and lets a couple of pixels of the bounce show. */
+    overflow-x: clip;
+    overflow-y: visible;
+    overflow-clip-margin: 4px;
   }
   /* The active pill is one element that slides between items rather than a
      background that blinks off one item and on to the next. Its geometry comes

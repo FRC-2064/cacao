@@ -1,12 +1,13 @@
 <script lang="ts">
   import { cacao } from '$lib/stores/cacaoStore.svelte';
-  import { theme } from '$lib/stores/theme.svelte';
+  import { theme, type ThemePreference } from '$lib/stores/theme.svelte';
   import M3Modal from '$lib/components/m3/M3Modal.svelte';
   import M3Input from '$lib/components/m3/M3Input.svelte';
+  import SegmentedToggle, { type SegmentedOption } from './SegmentedToggle.svelte';
   import { initialsOf } from './initials';
   import { firstNameProblem } from '../../../../convex/personNames';
   import { goto } from '$app/navigation';
-  import { LogOut, ShieldQuestion } from 'lucide-svelte';
+  import { LogOut, Monitor, Moon, ShieldQuestion, Sun } from 'lucide-svelte';
 
   interface Props {
     open: boolean;
@@ -15,11 +16,11 @@
 
   let { open = $bindable(false), onclose }: Props = $props();
 
-  const themeOptions = [
-    { id: 'light', label: 'Light' },
-    { id: 'dark', label: 'Dark' },
-    { id: 'system', label: 'System' }
-  ] as const;
+  const themeOptions: SegmentedOption[] = [
+    { value: 'light', label: 'Light', icon: Sun },
+    { value: 'dark', label: 'Dark', icon: Moon },
+    { value: 'system', label: 'System', icon: Monitor }
+  ];
 
   /**
    * A first name and one letter is the whole of what this app knows about a
@@ -216,18 +217,16 @@
 
     <div>
       <span class="field-label mb-2 block">Appearance</span>
-      <div class="segmented segmented-full">
-        {#each themeOptions as opt}
-          <button
-            type="button"
-            aria-pressed={theme.preference === opt.id}
-            onclick={() => theme.set(opt.id)}
-            class="segmented-item"
-          >
-            {opt.label}
-          </button>
-        {/each}
-      </div>
+      <!-- Reported through `onchange` rather than bound: writing
+           `theme.preference` alone would leave localStorage and
+           `<html data-theme>` stale, which is what `theme.set` is for. -->
+      <SegmentedToggle
+        options={themeOptions}
+        value={theme.preference}
+        onchange={(v) => theme.set(v as ThemePreference)}
+        class="segmented-full"
+        ariaLabel="Appearance"
+      />
     </div>
 
     <div class="flex justify-end pt-1">

@@ -1,23 +1,39 @@
-<script lang="ts">
+<script lang="ts" module>
   // lucide-svelte 0.475 still emits legacy class components, so icons are
   // typed as ComponentType rather than Svelte 5's Component.
   import type { ComponentType } from 'svelte';
 
+  // In the module script so callers can `import { type SegmentedOption }`
+  // alongside the component itself.
   export interface SegmentedOption {
     value: string;
     label: string;
     icon?: ComponentType;
     badge?: number;
   }
+</script>
 
+<script lang="ts">
   interface Props {
     options: SegmentedOption[];
     value: string;
+    /**
+     * For a value that lives somewhere other than a plain `$state` -- a store
+     * with a setter of its own, say -- where `bind:value` has nothing to write
+     * back to. Callers that can bind should bind.
+     */
+    onchange?: (value: string) => void;
     class?: string;
     ariaLabel?: string;
   }
 
-  let { options, value = $bindable(), class: className = '', ariaLabel }: Props = $props();
+  let {
+    options,
+    value = $bindable(),
+    onchange,
+    class: className = '',
+    ariaLabel
+  }: Props = $props();
 
   // ── Sliding active-tab pill ───────────────────────────────────────────────
   // CSS cannot animate a background from one sibling to another, so the active
@@ -71,7 +87,10 @@
     <button
       type="button"
       aria-pressed={active}
-      onclick={() => (value = option.value)}
+      onclick={() => {
+        value = option.value;
+        onchange?.(option.value);
+      }}
       class="segmented-item"
       class:is-active={active}
     >
