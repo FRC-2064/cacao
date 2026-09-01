@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount, type Component } from 'svelte';
   import { cacao } from '$lib/stores/cacaoStore.svelte';
   import type { UserRole } from '$lib/types';
   import { ACCOUNT_META } from '$lib/finance/categories';
@@ -12,7 +11,6 @@
   import {
     History,
     Download,
-    DatabaseZap,
     Landmark,
     School,
     ShieldCheck,
@@ -24,36 +22,7 @@
   import { flip } from 'svelte/animate';
   import { listItem, listRow } from '$lib/motion';
 
-  /**
-   * The seed-import panel is loaded lazily, and only in development.
-   *
-   * It is the sole runtime consumer of `$lib/data/teamData`, whose
-   * `TEAM_CONTACTS` holds the adult sponsor contacts that `contacts.list`
-   * gates behind `requireActor`. Imported statically, SvelteKit emitted that
-   * dataset as its own client chunk referenced from this route's node -- a
-   * static asset served to anyone who asks for it. The panel was never
-   * *mounted* for a non-admin, but a code-split chunk is not access control:
-   * `curl` does not mount components.
-   *
-   * `import.meta.env.DEV` is substituted with a literal `false` at build
-   * time, so the branch below is dead code the bundler drops outright and the
-   * production client build contains neither this component nor the dataset.
-   *
-   * That is the right shape independently of the leak: `importAll` destroys
-   * and rewrites every table, and it runs exactly once, at cutover, by the
-   * owner. A permanently deployed "replace all data" button is a standing
-   * hazard in exchange for a single use. The cutover runs it from a local dev
-   * server against the production deployment -- see Task 11, Step 8 of
-   * docs/superpowers/plans/2026-08-29-pii-removal.md.
-   */
-  let ImportSeedPanel = $state<Component | null>(null);
-  onMount(async () => {
-    if (import.meta.env.DEV) {
-      ImportSeedPanel = (await import('./ImportSeedPanel.svelte')).default;
-    }
-  });
-
-  let view = $state<'verification' | 'users' | 'log' | 'data'>('verification');
+  let view = $state<'verification' | 'users' | 'log'>('verification');
 
   // Per-account in-progress edits for the balance verification form below.
   // Keyed so editing one account's fields never touches another's, and absent
@@ -77,8 +46,7 @@
       icon: Users,
       badge: cacao.editRequests.length || undefined
     },
-    { value: 'log', label: 'Log', icon: History },
-    { value: 'data', label: 'Data', icon: DatabaseZap }
+    { value: 'log', label: 'Log', icon: History }
   ]);
   const verifiableBalances = $derived(
     cacao.accountBalances.filter((b) => b.account !== 'hcb_bank')
@@ -538,25 +506,6 @@
       {/each}
     </div>
   </section>
-  {/if}
-
-  {#if view === 'data'}
-    {#if ImportSeedPanel}
-      <ImportSeedPanel />
-    {:else}
-      <section class="card-elevated space-y-2 p-5">
-        <h2 class="type-title flex items-center gap-2">
-          <DatabaseZap size={18} />
-          <span>Seed import is a development-only control</span>
-        </h2>
-        <p class="type-body-sm" style="color: var(--color-on-surface-variant)">
-          Replacing the database from <code>src/lib/data/teamData.ts</code> is the one-time cutover
-          step, so this build does not ship it — the dataset would otherwise be served as a public
-          static asset, and it carries the sponsor contacts this app keeps behind sign-in. Run it
-          from a local <code>npm run dev</code> server pointed at this deployment.
-        </p>
-      </section>
-    {/if}
   {/if}
 
   {#if view === 'log'}

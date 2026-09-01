@@ -17,12 +17,13 @@ skills-lock.json
 # PII removal exists to delete -- never commit one.
 snapshots/
 
-# The team's raw sheet exports. Same reason as snapshots/, and this repo is
-# public: g_teaminfo.csv carries a mentor's cell number and personal email,
-# g_pipeline.csv fourteen students' full names in its "Assigned To" column,
-# g_sponsors.csv an "Assigned Student" column, and hcb-transactions.json
-# donor addresses. `generate.ts` exists precisely so none of that reaches
-# src/lib/data/teamData.ts -- checking the inputs in defeated the point.
+# The team's raw sheet exports, and the seed payload generated from them.
+# Both were cutover scaffolding: the generator and the import panel are gone
+# (Task 11, Step 12) and the data now lives in Convex. These rules stay so a
+# stray copy cannot be committed -- this repository is public, and the exports
+# carry a mentor's cell number and personal email and fourteen students' names.
+scripts/import/data/
+src/lib/data/ -- checking the inputs in defeated the point.
 # Keep them locally to re-run the generator; do not commit them.
 scripts/import/data/
 

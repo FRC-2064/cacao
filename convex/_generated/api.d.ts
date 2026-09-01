@@ -23,7 +23,6 @@ import type * as income from "../income.js";
 import type * as lib from "../lib.js";
 import type * as personNames from "../personNames.js";
 import type * as seasons from "../seasons.js";
-import type * as seed from "../seed.js";
 import type * as sessions from "../sessions.js";
 import type * as sponsors from "../sponsors.js";
 import type * as teamInfo from "../teamInfo.js";
@@ -53,7 +52,6 @@ declare const fullApi: ApiFromModules<{
   lib: typeof lib;
   personNames: typeof personNames;
   seasons: typeof seasons;
-  seed: typeof seed;
   sessions: typeof sessions;
   sponsors: typeof sponsors;
   teamInfo: typeof teamInfo;

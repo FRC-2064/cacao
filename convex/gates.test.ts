@@ -284,10 +284,6 @@ function mutationTable(): Array<{ name: string; gate: Gate; fn: AnyMutation; arg
 
     // Asking for edit access is the one write a viewer is supposed to make.
     { name: 'users.requestEditAccess', gate: 'actor', fn: api.users.requestEditAccess, args: { firstName: 'Levi', lastInitial: 'F' } },
-    // Gated on `actor`, not `admin`: it exists precisely because no admin does
-    // yet. A signed-in viewer reaches it and is then stopped by the bootstrap
-    // secret, which is the real gate and is asserted in `migrate.test.ts`.
-    { name: 'migrate.claimFirstAdmin', gate: 'actor', fn: api.migrate.claimFirstAdmin, args: { secret: 'not-the-secret' } },
     // Not `actor`: a viewer has no name to edit, and letting them set one
     // would be a way around the request flow that is supposed to be the only
     // door a name comes through.
@@ -306,7 +302,6 @@ function mutationTable(): Array<{ name: string; gate: Gate; fn: AnyMutation; arg
     { name: 'teamInfo.reorder', gate: 'admin', fn: api.teamInfo.reorder, args: { ids: [teamInfoId] } },
 
     // Destroys and rewrites every table.
-    { name: 'seed.importAll', gate: 'admin', fn: api.seed.importAll, args: { seasons: [], donors: [], users: [], accounts: [], sponsors: [], contacts: [], sponsorOutreach: [], grants: [], expenses: [], incomeDeposits: [], teamInfo: [], wishlist: [], actorLocalId: 'nobody' } },
 
     { name: 'expenses.add', gate: 'writer', fn: api.expenses.add, args: expenseFields },
     { name: 'expenses.update', gate: 'writer', fn: api.expenses.update, args: { id: expenseId, ...expenseFields } },
@@ -451,7 +446,6 @@ test('the gated queries refuse the roles they are meant to', async () => {
     { name: 'donors.list', gate: 'actor', fn: api.donors.list, args: {} },
     { name: 'audit.list', gate: 'actor', fn: api.audit.list, args: {} },
     { name: 'users.listRequests', gate: 'admin', fn: api.users.listRequests, args: {} },
-    { name: 'seed.status', gate: 'admin', fn: api.seed.status, args: {} },
   ];
 
   for (const row of gated) {
