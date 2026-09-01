@@ -15,9 +15,9 @@
    * through the store: donors are not store state, nothing else needs them,
    * and this field is the only screen that asks. The query is gated on
    * `requireActor`, which costs nothing here -- this component is mounted only
-   * inside `ExpenseModal` and `LogDepositModal`, both writer-only forms. In
-   * local (seed) mode there is no client and the datalist is simply empty,
-   * which degrades to the plain input it already was.
+   * inside `ExpenseModal` and `LogDepositModal`, both writer-only forms. With
+   * no client the datalist is simply empty, which degrades to the plain
+   * input it already was.
    */
   import { onMount } from 'svelte';
   import { getConvexClient } from '$lib/convex/client';

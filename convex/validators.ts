@@ -23,6 +23,10 @@ export const auditActionValidator = v.union(
   v.literal("reject_user"),
   v.literal("graduate_batch"),
   v.literal("outreach_logged"),
+  // Nothing writes this any more -- the cutover import that did was retired
+  // with its scaffold. It stays because the rows it wrote are still in
+  // `auditLogs`, and a value dropped from this union stops those rows
+  // validating.
   v.literal("import_seed")
 );
 

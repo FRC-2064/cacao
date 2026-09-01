@@ -7,11 +7,9 @@ import type {
   AuditLog,
   GrantStatus,
   GrantOutcome,
-  UserRole,
   RequirementItem,
   AnnualOutreachRecord,
   Expense,
-  ExpenseStatus,
   PaymentMethod,
   ExpenseAccount,
   CarrierType,
@@ -25,7 +23,6 @@ import type {
   Season,
   TeamInfoField,
   WishlistItem,
-  WishlistSource,
   DeadlineType,
   Priority
 } from '$lib/types';
@@ -41,7 +38,6 @@ import { api } from '../../../convex/_generated/api';
 import type { Id, TableNames } from '../../../convex/_generated/dataModel';
 import type { FunctionReference } from 'convex/server';
 import { isGrantOutcome, type BoardGrantStatus } from '$lib/types';
-import { seasonForDate } from '$lib/finance/dates';
 import { computeBalances, HCB_STALE_AFTER_MS, type AccountConfig } from '$lib/finance/balances';
 import { buildLedger, type HcbCategoryOverrides } from '$lib/finance/ledger';
 import {
@@ -54,9 +50,9 @@ import { INCOME_CATEGORY_META, EXPENSE_CATEGORY_META, ACCOUNT_META } from '$lib/
 import type { IncomeCategory, ExpenseCategory, Account } from '$lib/finance/categories';
 
 /**
- * The shared types in `$lib/types` model ids as plain strings. In remote mode
- * every id in the store originated from a Convex document, so narrowing back to
- * a branded `Id` at the mutation boundary is sound.
+ * The shared types in `$lib/types` model ids as plain strings. Every id in
+ * the store originated from a Convex document, so narrowing back to a branded
+ * `Id` at the mutation boundary is sound.
  */
 const asId = <T extends TableNames>(id: string) => id as Id<T>;
 
@@ -91,19 +87,16 @@ const SEASON_GOALS: Record<string, number> = {
 const DEFAULT_SEASON_GOAL = 20000;
 const ALL_TIME_GOAL = 65000;
 
+/**
+ * Convex owns every table, so the only thing worth keeping on the device is
+ * the Hack Club Bank feed: it comes from a third-party API rather than the
+ * deployment, and caching it is what stops a cold load rendering an empty
+ * ledger while the fetch is in flight.
+ */
 const STORAGE_KEYS = {
-  GRANTS: 'cacao_grants_v2',
-  SPONSORS: 'cacao_sponsors_v2',
-  CONTACTS: 'cacao_contacts_v2',
-  AUDIT: 'cacao_audit_v2',
-  EXPENSES: 'cacao_expenses_v2',
-  INCOME: 'cacao_income_v2',
-  TEAM_INFO: 'cacao_team_info_v2',
-  WISHLIST: 'cacao_wishlist_v2',
   HCB_ORG: 'cacao_hcb_org_v2',
   HCB_TXNS: 'cacao_hcb_txns_v2',
   HCB_SYNC: 'cacao_hcb_sync_v2',
-  HCB_CATEGORIES: 'cacao_hcb_categories_v2',
   HCB_DONATIONS: 'cacao_hcb_donations_v2'
 };
 
@@ -315,16 +308,9 @@ class CacaoStore {
   selectedSeason = $state<string>('');
   selectedAssignee = $state<string>('all');
   selectedExpenseCategory = $state<string>('all');
-  activeView = $state<'kanban' | 'table' | 'sponsors' | 'contacts' | 'expenses' | 'analytics' | 'admin'>('kanban');
   toastMessage = $state<{ text: string; type: 'success' | 'info' | 'error' } | null>(null);
 
-  /**
-   * True when `PUBLIC_CONVEX_URL` is set, meaning every table is served live
-   * from Convex. False means the legacy localStorage + seed-data mode.
-   */
-  readonly isRemote = isConvexEnabled;
-
-  /** Remote mode only: true until the first snapshot of each table lands. */
+  /** True until the first snapshot of each table lands. */
   isLoading = $state<boolean>(isConvexEnabled);
   connectionError = $state<string | null>(null);
 
@@ -344,54 +330,25 @@ class CacaoStore {
     // them.
     purgeLegacyStorage();
 
-    if (this.isRemote) {
-      if (browser) {
-        void this.initAuth();
-        this.subscribeToConvex();
-        this.hcbOrg = loadStored(STORAGE_KEYS.HCB_ORG, null);
-        this.hcbTransactions = loadStored(STORAGE_KEYS.HCB_TXNS, []);
-        this.hcbDonations = loadStored(STORAGE_KEYS.HCB_DONATIONS, []);
-        this.hcbLastSyncedAt = loadStored(STORAGE_KEYS.HCB_SYNC, null);
-        this.syncHackClubBank(false);
-      }
-      return;
-    }
+    if (!browser) return;
 
-    // Local mode starts empty rather than from a demo dataset: the only data
-    // this app should ever show is the team's own, and "Import 2064 data" on
-    // the Admin page is how it gets here.
-    //
-    // There is deliberately no roster and no season list here. Local mode has
-    // no identity provider and never had one, so a `users` array would be an
-    // invented one; `seasons` are served by the deployment. Both stay empty,
-    // which is what "browsable, read-only, nobody is signed in" actually looks
-    // like.
-    if (browser) {
-      this.grants = loadStored(STORAGE_KEYS.GRANTS, []);
-      this.sponsors = loadStored(STORAGE_KEYS.SPONSORS, []);
-      this.contacts = loadStored(STORAGE_KEYS.CONTACTS, []);
-      this.auditLogs = loadStored(STORAGE_KEYS.AUDIT, []);
-      this.expenses = loadStored(STORAGE_KEYS.EXPENSES, []);
-      this.incomeDeposits = loadStored(STORAGE_KEYS.INCOME, []);
-      this.teamInfo = loadStored(STORAGE_KEYS.TEAM_INFO, []);
-      this.wishlist = loadStored(STORAGE_KEYS.WISHLIST, []);
-      this.hcbOrg = loadStored(STORAGE_KEYS.HCB_ORG, null);
-      this.hcbTransactions = loadStored(STORAGE_KEYS.HCB_TXNS, []);
-        this.hcbDonations = loadStored(STORAGE_KEYS.HCB_DONATIONS, []);
-      this.hcbLastSyncedAt = loadStored(STORAGE_KEYS.HCB_SYNC, null);
-      this.hcbCategories = loadStored(STORAGE_KEYS.HCB_CATEGORIES, []);
+    void this.initAuth();
+    this.subscribeToConvex();
 
-      // Trigger background HCB sync on startup
-      this.syncHackClubBank(false);
-    }
+    // Paint from the cached bank feed, then refresh it in the background.
+    this.hcbOrg = loadStored(STORAGE_KEYS.HCB_ORG, null);
+    this.hcbTransactions = loadStored(STORAGE_KEYS.HCB_TXNS, []);
+    this.hcbDonations = loadStored(STORAGE_KEYS.HCB_DONATIONS, []);
+    this.hcbLastSyncedAt = loadStored(STORAGE_KEYS.HCB_SYNC, null);
+    this.syncHackClubBank(false);
   }
 
   // ── Convex wiring ────────────────────────────────────────────────────
 
   /**
    * Open a live subscription per table. Convex pushes a fresh array whenever
-   * anything changes, so these assignments are the single source of truth in
-   * remote mode and they overwrite any optimistic edit a mutation made.
+   * anything changes, so these assignments are the single source of truth
+   * and they overwrite any optimistic edit a mutation made.
    */
   private subscribeToConvex() {
     const client = getConvexClient();
@@ -618,9 +575,9 @@ class CacaoStore {
   }
 
   /**
-   * Fire a Convex mutation, or do nothing in local mode. Failures surface as a
-   * toast; the live subscription then snaps the UI back to server truth, which
-   * undoes whatever optimistic edit the caller applied.
+   * Fire a Convex mutation. Failures surface as a toast; the live
+   * subscription then snaps the UI back to server truth, which undoes
+   * whatever optimistic edit the caller applied.
    */
   private async push<M extends FunctionReference<'mutation'>>(
     mutation: M,
@@ -646,7 +603,7 @@ class CacaoStore {
    * gets the feed and a demoted one loses it without a reload.
    */
   private syncRequestsSubscription() {
-    const shouldWatch = this.isRemote && this.currentUser.role === 'admin';
+    const shouldWatch = this.currentUser.role === 'admin';
     if (shouldWatch === (this.requestsUnsubscribe !== null)) return;
 
     if (!shouldWatch) {
@@ -689,66 +646,6 @@ class CacaoStore {
         this.toastMessage = null;
       }
     }, 4000);
-  }
-
-  private persistAll() {
-    // In remote mode Convex owns the data; only the HCB cache is worth keeping
-    // in localStorage. The signed-in user is deliberately not cached: nothing
-    // ever read it back, and writing a person to a device that nothing reads
-    // is all cost and no benefit.
-    if (this.isRemote) {
-      saveStored(STORAGE_KEYS.HCB_ORG, this.hcbOrg);
-      saveStored(STORAGE_KEYS.HCB_TXNS, this.hcbTransactions);
-      saveStored(STORAGE_KEYS.HCB_DONATIONS, this.hcbDonations);
-      saveStored(STORAGE_KEYS.HCB_SYNC, this.hcbLastSyncedAt);
-      return;
-    }
-
-    saveStored(STORAGE_KEYS.GRANTS, this.grants);
-    saveStored(STORAGE_KEYS.SPONSORS, this.sponsors);
-    saveStored(STORAGE_KEYS.CONTACTS, this.contacts);
-    saveStored(STORAGE_KEYS.AUDIT, this.auditLogs);
-    saveStored(STORAGE_KEYS.EXPENSES, this.expenses);
-    saveStored(STORAGE_KEYS.INCOME, this.incomeDeposits);
-    saveStored(STORAGE_KEYS.HCB_ORG, this.hcbOrg);
-    saveStored(STORAGE_KEYS.HCB_TXNS, this.hcbTransactions);
-      saveStored(STORAGE_KEYS.HCB_DONATIONS, this.hcbDonations);
-    saveStored(STORAGE_KEYS.HCB_SYNC, this.hcbLastSyncedAt);
-    saveStored(STORAGE_KEYS.HCB_CATEGORIES, this.hcbCategories);
-    saveStored(STORAGE_KEYS.TEAM_INFO, this.teamInfo);
-    saveStored(STORAGE_KEYS.WISHLIST, this.wishlist);
-  }
-
-  /**
-   * Append a local audit row.
-   *
-   * Takes no `entityName`, `summary` or `details`: none of the three exists on
-   * the wire any more. An entity is named by resolving `entityId` at read
-   * time, and `change` is a single field-level fact rather than the free-form
-   * payload `details` used to be -- an unbounded record here would be the
-   * `details: any` column this branch deleted, back under a new name.
-   */
-  private addAudit(
-    action: AuditLog['action'],
-    entityType: AuditLog['entityType'],
-    entityId: string,
-    change?: AuditLog['change']
-  ) {
-    // Convex mutations write their own audit rows server-side, so logging here
-    // as well would duplicate every entry.
-    if (this.isRemote) return;
-
-    const log: AuditLog = {
-      _id: `audit_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      timestamp: Date.now(),
-      actorName: this.currentUser.displayName,
-      action,
-      entityType,
-      entityId,
-      ...(change ? { change } : {})
-    };
-    this.auditLogs = [log, ...this.auditLogs];
-    saveStored(STORAGE_KEYS.AUDIT, this.auditLogs);
   }
 
   // ── Seasons & accounts ───────────────────────────────────────────────
@@ -929,8 +826,6 @@ class CacaoStore {
       updatedAt: now
     };
     this.grants = [grant, ...this.grants];
-    this.addAudit('create', 'grant', id);
-    this.persistAll();
     this.push(api.grants.create, {
       ...fields,
       seasonId: asId<'seasons'>(input.seasonId),
@@ -944,11 +839,10 @@ class CacaoStore {
     const index = this.grants.findIndex((g) => g._id === updated._id);
     if (index === -1) return;
 
-    const old = this.grants[index];
     const now = Date.now();
     const { assigneeId, ...row } = updated;
-    // `assigneeId` back on the optimistic row, not dropped: in remote mode the
-    // next snapshot restores it either way, but until then the drawer reopens
+    // `assigneeId` back on the optimistic row, not dropped: the next
+    // snapshot restores it either way, but until then the drawer reopens
     // reading its own state and would show "Unassigned" for a grant it had
     // just assigned. `?? undefined` because a cleared assignee is an absent
     // one on a `Grant`.
@@ -957,17 +851,6 @@ class CacaoStore {
     this.grants[index] = grant;
     this.grants = [...this.grants];
 
-    if (old.status !== updated.status) {
-      this.addAudit('status_change', 'grant', grant._id, {
-        field: 'status',
-        from: old.status,
-        to: updated.status
-      });
-    } else {
-      this.addAudit('update', 'grant', grant._id);
-    }
-
-    this.persistAll();
     this.push(api.grants.update, {
       id: asId<'grants'>(updated._id),
       title: updated.title,
@@ -1010,21 +893,14 @@ class CacaoStore {
 
     this.grants = [...this.grants];
     if (oldStatus !== targetStatus) {
-      this.addAudit('status_change', 'grant', grant._id, {
-        field: 'status',
-        from: oldStatus,
-        to: targetStatus
-      });
       this.showToast(`Moved "${grant.title}" to ${targetStatus}`);
     }
-    this.persistAll();
     this.push(api.grants.updateStatusAndOrder, {
       id: asId<'grants'>(grantId),
       status: targetStatus,
       order: newOrder
     });
   }
-
 
   // ── Finishing a grant ────────────────────────────────────────────────
 
@@ -1070,84 +946,29 @@ class CacaoStore {
       return;
     }
 
-    const now = Date.now();
-
-    if (this.isRemote) {
-      const client = getConvexClient();
-      if (!client) return;
-      try {
-        await client.mutation(api.grants.finish, {
-          id: asId<'grants'>(grantId),
-          outcome,
-          awardedAmount: outcome === 'awarded' ? award!.amount : undefined,
-          awardedDate: outcome === 'awarded' ? award!.date : undefined
-        });
-        this.showToast(
-          outcome === 'awarded'
-            ? `Awarded — $${award!.amount.toLocaleString('en-US')} recorded against the Region 15 account`
-            : `Marked "${grant.title}" as ${outcome}`
-        );
-      } catch (e) {
-        const message = e instanceof Error ? e.message : String(e);
-        console.error('Finishing the grant failed:', e);
-        this.showToast(`Could not finish the grant: ${message}`, 'error');
-      }
-      return;
+    // Not optimistic, unlike the rest of the write path: `grants.finish` also
+    // inserts the `incomeDeposits` row for the award, in the same transaction
+    // as the status change. Guessing that row's shape here and having the next
+    // snapshot correct it would flicker money on the Money tab.
+    const client = getConvexClient();
+    if (!client) return;
+    try {
+      await client.mutation(api.grants.finish, {
+        id: asId<'grants'>(grantId),
+        outcome,
+        awardedAmount: outcome === 'awarded' ? award!.amount : undefined,
+        awardedDate: outcome === 'awarded' ? award!.date : undefined
+      });
+      this.showToast(
+        outcome === 'awarded'
+          ? `Awarded — $${award!.amount.toLocaleString('en-US')} recorded against the Region 15 account`
+          : `Marked "${grant.title}" as ${outcome}`
+      );
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.error('Finishing the grant failed:', e);
+      this.showToast(`Could not finish the grant: ${message}`, 'error');
     }
-
-    let depositId: string | undefined;
-    if (outcome === 'awarded' && award) {
-      depositId = `dep_${now}_${Math.random().toString(36).substring(2, 6)}`;
-      this.incomeDeposits = [
-        {
-          _id: depositId,
-          title: grant.title,
-          amount: award.amount,
-          category: 'grants',
-          depositAccount: 'school_account',
-          date: award.date,
-          loggedByName: this.currentUser.displayName,
-          // The grant's own season, not the date's: an award applied for in
-          // one season routinely lands in the next, and the tag is what
-          // `buildLedger` files it under.
-          seasonId: grant.seasonId,
-          season: grant.season || seasonForDate(award.date),
-          notes: `Awarded by ${grant.funder}.`,
-          // No donor. `grants.finish` sets none either, and a funder is not a
-          // donor -- stamping one here made the donor report say different
-          // things in local mode and in production, which is precisely the
-          // difference this fallback exists not to have.
-          taxYear: Number(award.date.slice(0, 4)),
-          updatedAt: now
-        },
-        ...this.incomeDeposits
-      ];
-    }
-
-    const index = this.grants.findIndex((g) => g._id === grantId);
-    this.grants[index] = {
-      ...grant,
-      status: outcome,
-      awardedAmount: outcome === 'awarded' ? award!.amount : undefined,
-      awardedDate: outcome === 'awarded' ? award!.date : undefined,
-      linkedDepositId: depositId,
-      finishedAt: now,
-      finishedByName: this.currentUser.displayName,
-      updatedAt: now
-    };
-    this.grants = [...this.grants];
-
-    this.addAudit('status_change', 'grant', grantId, {
-      field: 'status',
-      from: grant.status,
-      to: outcome
-    });
-    this.persistAll();
-    this.showToast(
-      outcome === 'awarded'
-        ? `Awarded — $${award!.amount.toLocaleString('en-US')} recorded against the Region 15 account`
-        : `Marked "${grant.title}" as ${outcome}`
-    );
   }
 
   /**
@@ -1162,26 +983,10 @@ class CacaoStore {
 
     const hadDeposit = grant.linkedDepositId !== undefined;
 
-    if (this.isRemote) {
-      await this.push(api.grants.reopen, {
-        id: asId<'grants'>(grantId),
-        status
-      });
-    } else {
-      const index = this.grants.findIndex((g) => g._id === grantId);
-      this.grants[index] = {
-        ...grant,
-        status,
-        awardedAmount: undefined,
-        awardedDate: undefined,
-        linkedDepositId: undefined,
-        finishedAt: undefined,
-        finishedByName: undefined,
-        updatedAt: Date.now()
-      };
-      this.grants = [...this.grants];
-      this.persistAll();
-    }
+    await this.push(api.grants.reopen, {
+      id: asId<'grants'>(grantId),
+      status
+    });
 
     this.showToast(
       hadDeposit
@@ -1197,8 +1002,6 @@ class CacaoStore {
     if (!grant) return;
 
     this.grants = this.grants.filter((g) => g._id !== grantId);
-    this.addAudit('delete', 'grant', grantId);
-    this.persistAll();
     this.push(api.grants.remove, { id: asId<'grants'>(grantId) });
     this.showToast(`Deleted "${grant.title}"`, 'info');
   }
@@ -1215,8 +1018,6 @@ class CacaoStore {
       updatedAt: now
     };
     this.expenses = [expense, ...this.expenses];
-    this.addAudit('create', 'system', id);
-    this.persistAll();
     this.push(api.expenses.add, this.expenseMutationFields(newExpense));
     this.showToast(`Logged expense request for $${expense.amount}!`);
   }
@@ -1312,7 +1113,6 @@ class CacaoStore {
     const index = this.expenses.findIndex((e) => e._id === updated._id);
     if (index === -1) return;
 
-    const old = this.expenses[index];
     const now = Date.now();
     const exp: Expense = {
       ...updated,
@@ -1321,17 +1121,6 @@ class CacaoStore {
     this.expenses[index] = exp;
     this.expenses = [...this.expenses];
 
-    if (old.status !== updated.status) {
-      this.addAudit('status_change', 'system', exp._id, {
-        field: 'status',
-        from: old.status,
-        to: updated.status
-      });
-    } else {
-      this.addAudit('update', 'system', exp._id);
-    }
-
-    this.persistAll();
     this.push(api.expenses.update, {
       id: asId<'expenses'>(updated._id),
       ...this.expenseMutationFields(updated)
@@ -1345,18 +1134,11 @@ class CacaoStore {
     if (!exp) return;
 
     const now = Date.now();
-    const from = exp.status;
     exp.status = 'approved';
     exp.approvedAt = now;
     exp.updatedAt = now;
 
     this.expenses = [...this.expenses];
-    this.addAudit('status_change', 'system', exp._id, {
-      field: 'status',
-      from,
-      to: 'approved'
-    });
-    this.persistAll();
     this.push(api.expenses.approve, { id: asId<'expenses'>(expenseId) });
     this.showToast(`Approved expense for $${exp.amount}!`);
   }
@@ -1381,7 +1163,6 @@ class CacaoStore {
     if (!exp) return;
 
     const now = Date.now();
-    const from = exp.status;
     exp.status = 'purchased';
     exp.finalPaidAmount = details.finalPaidAmount;
     exp.paymentMethod = details.paymentMethod;
@@ -1400,12 +1181,6 @@ class CacaoStore {
     exp.updatedAt = now;
 
     this.expenses = [...this.expenses];
-    this.addAudit('status_change', 'system', exp._id, {
-      field: 'status',
-      from,
-      to: 'purchased'
-    });
-    this.persistAll();
     this.push(api.expenses.recordPurchase, {
       id: asId<'expenses'>(expenseId),
       ...this.expenseAccountField(details.account),
@@ -1428,18 +1203,11 @@ class CacaoStore {
     if (!exp) return;
 
     const now = Date.now();
-    const from = exp.deliveryStatus ?? 'ordered';
     exp.deliveryStatus = 'delivered';
     exp.receivedAt = now;
     exp.updatedAt = now;
 
     this.expenses = [...this.expenses];
-    this.addAudit('status_change', 'system', exp._id, {
-      field: 'deliveryStatus',
-      from,
-      to: 'delivered'
-    });
-    this.persistAll();
     this.push(api.expenses.markDelivered, { id: asId<'expenses'>(expenseId) });
     this.showToast(`Marked "${exp.title}" as received in shop!`);
   }
@@ -1450,7 +1218,6 @@ class CacaoStore {
     if (!exp) return;
 
     const now = Date.now();
-    const from = exp.status;
     exp.status = 'purchased';
     exp.purchasedAt = now;
     exp.finalPaidAmount = exp.finalPaidAmount ?? exp.amount;
@@ -1458,8 +1225,6 @@ class CacaoStore {
     exp.updatedAt = now;
 
     this.expenses = [...this.expenses];
-    this.addAudit('status_change', 'system', exp._id, { field: 'status', from, to: 'purchased' });
-    this.persistAll();
     this.push(api.expenses.purchase, { id: asId<'expenses'>(expenseId) });
     this.showToast(`Marked as purchased!`);
   }
@@ -1470,14 +1235,11 @@ class CacaoStore {
     if (!exp) return;
 
     const now = Date.now();
-    const from = exp.status;
     exp.status = 'reimbursed';
     exp.reimbursedAt = now;
     exp.updatedAt = now;
 
     this.expenses = [...this.expenses];
-    this.addAudit('status_change', 'system', exp._id, { field: 'status', from, to: 'reimbursed' });
-    this.persistAll();
     this.push(api.expenses.reimburse, { id: asId<'expenses'>(expenseId) });
     this.showToast(`Marked expense as reimbursed!`);
   }
@@ -1488,8 +1250,6 @@ class CacaoStore {
     if (!exp) return;
 
     this.expenses = this.expenses.filter((e) => e._id !== expenseId);
-    this.addAudit('delete', 'system', expenseId);
-    this.persistAll();
     this.push(api.expenses.remove, { id: asId<'expenses'>(expenseId) });
     this.showToast(`Deleted expense "${exp.title}"`, 'info');
   }
@@ -1498,7 +1258,7 @@ class CacaoStore {
   addIncomeDeposit(newDeposit: Omit<IncomeDeposit, '_id' | 'updatedAt'>) {
     if (!this.ensureCanEdit()) return;
     const accountId = this.accountIdFor(newDeposit.depositAccount);
-    if (this.isRemote && !accountId) {
+    if (!accountId) {
       this.showToast(
         `No ${newDeposit.depositAccount} account is configured to book this against`,
         'error'
@@ -1514,8 +1274,6 @@ class CacaoStore {
       updatedAt: now
     };
     this.incomeDeposits = [deposit, ...this.incomeDeposits];
-    this.addAudit('create', 'system', id);
-    this.persistAll();
     if (accountId) {
       this.push(api.income.add, this.depositMutationFields(newDeposit, accountId));
     }
@@ -1559,7 +1317,7 @@ class CacaoStore {
     if (index === -1) return;
 
     const accountId = this.accountIdFor(updated.depositAccount);
-    if (this.isRemote && !accountId) {
+    if (!accountId) {
       this.showToast(
         `No ${updated.depositAccount} account is configured to book this against`,
         'error'
@@ -1569,8 +1327,6 @@ class CacaoStore {
 
     this.incomeDeposits[index] = { ...updated, updatedAt: Date.now() };
     this.incomeDeposits = [...this.incomeDeposits];
-    this.addAudit('update', 'system', updated._id);
-    this.persistAll();
     if (accountId) {
       this.push(api.income.update, {
         id: asId<'incomeDeposits'>(updated._id),
@@ -1586,8 +1342,6 @@ class CacaoStore {
     if (!dep) return;
 
     this.incomeDeposits = this.incomeDeposits.filter((d) => d._id !== id);
-    this.addAudit('delete', 'system', id);
-    this.persistAll();
     this.push(api.income.remove, { id: asId<'incomeDeposits'>(id) });
     this.showToast(`Deleted deposit "${dep.title}"`, 'info');
   }
@@ -1603,8 +1357,6 @@ class CacaoStore {
       updatedAt: now
     };
     this.sponsors = [sponsor, ...this.sponsors];
-    this.addAudit('create', 'sponsor', id);
-    this.persistAll();
     this.push(api.sponsors.create, this.sponsorMutationFields(newSponsor));
     this.showToast(`Added sponsor "${sponsor.name}"!`);
   }
@@ -1653,8 +1405,6 @@ class CacaoStore {
     const sponsor: Sponsor = { ...updated, updatedAt: now };
     this.sponsors[index] = sponsor;
     this.sponsors = [...this.sponsors];
-    this.addAudit('update', 'sponsor', sponsor._id);
-    this.persistAll();
     this.push(api.sponsors.update, {
       id: asId<'sponsors'>(updated._id),
       ...this.sponsorMutationFields(updated)
@@ -1668,8 +1418,6 @@ class CacaoStore {
     if (!sponsor) return;
 
     this.sponsors = this.sponsors.filter((s) => s._id !== sponsorId);
-    this.addAudit('delete', 'sponsor', sponsorId);
-    this.persistAll();
     this.push(api.sponsors.remove, { id: asId<'sponsors'>(sponsorId) });
     this.showToast(`Removed "${sponsor.name}"`, 'info');
   }
@@ -1680,7 +1428,6 @@ class CacaoStore {
     if (!sponsor) return;
 
     const existingIndex = sponsor.annualHistory.findIndex((h) => h.year === record.year);
-    const previousStatus = existingIndex >= 0 ? sponsor.annualHistory[existingIndex].status : '';
     if (existingIndex >= 0) {
       sponsor.annualHistory[existingIndex] = record;
     } else {
@@ -1691,12 +1438,6 @@ class CacaoStore {
     sponsor.updatedAt = Date.now();
 
     this.sponsors = [...this.sponsors];
-    this.addAudit('outreach_logged', 'sponsor', sponsor._id, {
-      field: `outreach ${record.year}`,
-      from: previousStatus,
-      to: record.status
-    });
-    this.persistAll();
     this.push(api.sponsors.logOutreach, {
       sponsorId: asId<'sponsors'>(sponsorId),
       year: record.year,
@@ -1718,8 +1459,6 @@ class CacaoStore {
       updatedAt: now
     };
     this.contacts = [contact, ...this.contacts];
-    this.addAudit('create', 'contact', id);
-    this.persistAll();
     this.push(api.contacts.create, {
       sponsorId: newContact.sponsorId ? asId<'sponsors'>(newContact.sponsorId) : undefined,
       name: newContact.name,
@@ -1742,8 +1481,6 @@ class CacaoStore {
     const contact: Contact = { ...updated, updatedAt: now };
     this.contacts[index] = contact;
     this.contacts = [...this.contacts];
-    this.addAudit('update', 'contact', contact._id);
-    this.persistAll();
     this.push(api.contacts.update, {
       id: asId<'contacts'>(updated._id),
       sponsorId: updated.sponsorId ? asId<'sponsors'>(updated.sponsorId) : undefined,
@@ -1765,8 +1502,6 @@ class CacaoStore {
     if (!contact) return;
 
     this.contacts = this.contacts.filter((c) => c._id !== contactId);
-    this.addAudit('delete', 'contact', contactId);
-    this.persistAll();
     this.push(api.contacts.remove, { id: asId<'contacts'>(contactId) });
     this.showToast(`Deleted "${contact.name}"`, 'info');
   }
@@ -1786,9 +1521,9 @@ class CacaoStore {
   async initAuth() {
     if (!browser) return;
 
-    if (!this.isRemote || !isAuthEnabled) {
-      // Local mode has no identity provider, so the bundled dataset is
-      // browsable read-only rather than pretending anyone is signed in.
+    if (!isAuthEnabled) {
+      // No deployment to authenticate against. The finances are public to
+      // read, so this is the guest view rather than an error.
       this.enterGuestMode();
       return;
     }
@@ -1993,7 +1728,6 @@ class CacaoStore {
     this.showToast(`${user.displayName} is now a ${role}`);
   }
 
-
   /**
    * Revoke access. Their Google account is untouched -- we only stop
    * answering: the roster row drops to `viewer`, so the next token they
@@ -2083,7 +1817,6 @@ class CacaoStore {
     this.hcbCategories = existing
       ? this.hcbCategories.map((c) => (c.hcbTransactionId === hcbTransactionId ? { ...c, ...row } : c))
       : [...this.hcbCategories, row];
-    this.persistAll();
 
     this.push(api.hcbCategories.set, { hcbTransactionId, direction, category });
   }
@@ -2096,7 +1829,6 @@ class CacaoStore {
     }
 
     this.hcbCategories = this.hcbCategories.filter((c) => c.hcbTransactionId !== hcbTransactionId);
-    this.persistAll();
 
     this.push(api.hcbCategories.clear, { hcbTransactionId });
   }
@@ -2469,8 +2201,6 @@ class CacaoStore {
       updatedAt: now
     };
     this.teamInfo = [...this.teamInfo, field];
-    this.addAudit('create', 'team_info', id);
-    this.persistAll();
     this.push(api.teamInfo.create, { label, value });
     this.showToast(`Added "${label}"`);
   }
@@ -2480,7 +2210,6 @@ class CacaoStore {
     const index = this.teamInfo.findIndex((f) => f._id === id);
     if (index === -1) return;
 
-    const previous = this.teamInfo[index].value;
     this.teamInfo[index] = {
       ...this.teamInfo[index],
       label,
@@ -2488,8 +2217,6 @@ class CacaoStore {
       updatedAt: Date.now()
     };
     this.teamInfo = [...this.teamInfo];
-    this.addAudit('update', 'team_info', id, { field: 'value', from: previous, to: value });
-    this.persistAll();
     this.push(api.teamInfo.update, { id: asId<'teamInfo'>(id), label, value });
     this.showToast(`Saved "${label}"`);
   }
@@ -2500,8 +2227,6 @@ class CacaoStore {
     if (!field) return;
 
     this.teamInfo = this.teamInfo.filter((f) => f._id !== id);
-    this.addAudit('delete', 'team_info', id);
-    this.persistAll();
     this.push(api.teamInfo.remove, { id: asId<'teamInfo'>(id) });
     this.showToast(`Removed "${field.label}"`, 'info');
   }
@@ -2520,7 +2245,6 @@ class CacaoStore {
 
     [ordered[from], ordered[to]] = [ordered[to], ordered[from]];
     this.teamInfo = ordered.map((f, i) => ({ ...f, order: i }));
-    this.persistAll();
     this.push(api.teamInfo.reorder, {
       ids: ordered.map((f) => asId<'teamInfo'>(f._id))
     });
@@ -2549,8 +2273,6 @@ class CacaoStore {
       updatedAt: now
     };
     this.wishlist = [record, ...this.wishlist];
-    this.addAudit('create', 'wishlist', id);
-    this.persistAll();
     this.push(api.wishlist.create, { ...item });
     this.showToast(`Added "${item.tool}" to the wishlist`);
   }
@@ -2562,8 +2284,6 @@ class CacaoStore {
 
     this.wishlist[index] = { ...updated, updatedAt: Date.now() };
     this.wishlist = [...this.wishlist];
-    this.addAudit('update', 'wishlist', updated._id);
-    this.persistAll();
     const { _id, updatedAt, ...fields } = updated;
     this.push(api.wishlist.update, { id: asId<'wishlist'>(_id), ...fields });
     this.showToast(`Saved "${updated.tool}"`);
@@ -2575,12 +2295,9 @@ class CacaoStore {
     if (!item) return;
 
     this.wishlist = this.wishlist.filter((w) => w._id !== id);
-    this.addAudit('delete', 'wishlist', id);
-    this.persistAll();
     this.push(api.wishlist.remove, { id: asId<'wishlist'>(id) });
     this.showToast(`Removed "${item.tool}"`, 'info');
   }
-
 }
 
 export const cacao = new CacaoStore();

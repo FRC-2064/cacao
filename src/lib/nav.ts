@@ -33,11 +33,6 @@ export function visibleNavItems(isAdmin: boolean): NavItem[] {
   return NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
 }
 
-/** Destinations for the mobile bottom bar: the same six/seven real destinations. */
-export function primaryNavItems(isAdmin: boolean): NavItem[] {
-  return visibleNavItems(isAdmin);
-}
-
 export function pendingFor(item: NavItem): number {
   if (item.badge === 'expenses') return cacao.metrics.pendingExpensesCount;
   return 0;

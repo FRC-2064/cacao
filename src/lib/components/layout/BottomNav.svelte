@@ -1,14 +1,14 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { cacao } from '$lib/stores/cacaoStore.svelte';
-  import { primaryNavItems, pendingFor, isActive } from '$lib/nav';
+  import { visibleNavItems, pendingFor, isActive } from '$lib/nav';
 
   /**
    * Material 3 navigation bar for narrow screens. The wide layout's segmented
    * strip needed ~770px and scrolled horizontally with no affordance, so on a
    * phone you could not tell the remaining tabs existed.
    */
-  const items = $derived(primaryNavItems(cacao.currentUser.role === 'admin'));
+  const items = $derived(visibleNavItems(cacao.currentUser.role === 'admin'));
 </script>
 
 <nav class="bottom-nav md:hidden" aria-label="Views">

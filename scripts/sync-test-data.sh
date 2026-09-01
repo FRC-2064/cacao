@@ -30,10 +30,6 @@ echo "==> Replacing the data in your dev deployment…"
 # would linger in the test copy and quietly make it a different database.
 npx convex import --deployment dev --replace-all --yes "$SNAPSHOT"
 
-echo
-echo "==> Done. Row counts in the test deployment:"
-npx convex run --deployment dev seed:status
-
 cat <<'EOF'
 
 The test deployment now mirrors production. `npm run dev` talks to it, so
