@@ -284,6 +284,10 @@ function mutationTable(): Array<{ name: string; gate: Gate; fn: AnyMutation; arg
 
     // Asking for edit access is the one write a viewer is supposed to make.
     { name: 'users.requestEditAccess', gate: 'actor', fn: api.users.requestEditAccess, args: { firstName: 'Levi', lastInitial: 'F' } },
+    // Gated on `actor`, not `admin`: it exists precisely because no admin does
+    // yet. A signed-in viewer reaches it and is then stopped by the bootstrap
+    // secret, which is the real gate and is asserted in `migrate.test.ts`.
+    { name: 'migrate.claimFirstAdmin', gate: 'actor', fn: api.migrate.claimFirstAdmin, args: { secret: 'not-the-secret' } },
     // Not `actor`: a viewer has no name to edit, and letting them set one
     // would be a way around the request flow that is supposed to be the only
     // door a name comes through.
