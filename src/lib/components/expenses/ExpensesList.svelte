@@ -16,7 +16,7 @@
   import ExpenseModal from './ExpenseModal.svelte';
   import AddExpenseModal from './AddExpenseModal.svelte';
   import MarkPurchasedModal from './MarkPurchasedModal.svelte';
-  import PageHeader from '$lib/components/layout/PageHeader.svelte';
+  import { PageHeader } from '@frc2064/ui';
   import {
     Plus,
     Download,

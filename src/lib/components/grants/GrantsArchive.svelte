@@ -7,7 +7,7 @@
     type Grant,
     type GrantOutcome
   } from '$lib/types';
-  import PageHeader from '$lib/components/layout/PageHeader.svelte';
+  import { PageHeader } from '@frc2064/ui';
   import { formatDay } from '$lib/finance/dates';
   import { Undo2, ExternalLink } from 'lucide-svelte';
   import { fly, scale } from 'svelte/transition';

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { cacao } from '$lib/stores/cacaoStore.svelte';
   import { type Grant } from '$lib/types';
-  import { initialsOf } from '$lib/components/layout/initials';
+  import { initialsOf } from '@frc2064/ui';
   import { Calendar, FileText, ExternalLink, Check } from 'lucide-svelte';
 
   interface Props {

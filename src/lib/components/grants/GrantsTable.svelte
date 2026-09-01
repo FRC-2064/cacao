@@ -1,7 +1,7 @@
 <script lang="ts">
   import { cacao } from '$lib/stores/cacaoStore.svelte';
   import { GRANT_STATUS_META, TONE_CHIP, type Grant } from '$lib/types';
-  import PageHeader from '$lib/components/layout/PageHeader.svelte';
+  import { PageHeader } from '@frc2064/ui';
   import { Download, ExternalLink, FileText, ChevronUp, ChevronDown, Plus } from 'lucide-svelte';
   import { fade, fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';

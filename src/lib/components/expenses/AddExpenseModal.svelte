@@ -1,12 +1,7 @@
 <script lang="ts">
   import type { ExpenseCategory } from '$lib/types';
   import { cacao } from '$lib/stores/cacaoStore.svelte';
-  import M3Modal from '$lib/components/m3/M3Modal.svelte';
-  import M3Input from '$lib/components/m3/M3Input.svelte';
-  import M3Select from '$lib/components/m3/M3Select.svelte';
-  import SegmentedToggle, {
-    type SegmentedOption
-  } from '$lib/components/layout/SegmentedToggle.svelte';
+  import { M3Modal, M3Input, M3Select, SegmentedToggle, type SegmentedOption } from '@frc2064/ui';
   import { Plus, ShoppingCart, UserCheck } from 'lucide-svelte';
   import { EXPENSE_FORM_CATEGORIES, EXPENSE_CATEGORY_META } from '$lib/finance/categories';
   import { defaultSeasonId, seasonLabelFor } from '$lib/components/finance/seasons';

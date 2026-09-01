@@ -3,7 +3,7 @@
   import { cacao } from '$lib/stores/cacaoStore.svelte';
   import { theme } from '$lib/stores/theme.svelte';
   import { visibleNavItems, pendingFor, isActive } from '$lib/nav';
-  import { initialsOf } from './initials';
+  import { initialsOf } from '@frc2064/ui';
   import { Sun, Moon, X } from 'lucide-svelte';
 
   interface Props {

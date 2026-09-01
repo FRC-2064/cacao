@@ -2,7 +2,7 @@
   import GrantsKanban from '$lib/components/grants/GrantsKanban.svelte';
   import GrantsTable from '$lib/components/grants/GrantsTable.svelte';
   import GrantsArchive from '$lib/components/grants/GrantsArchive.svelte';
-  import SegmentedToggle from '$lib/components/layout/SegmentedToggle.svelte';
+  import { SegmentedToggle } from '@frc2064/ui';
   import { cacao } from '$lib/stores/cacaoStore.svelte';
   import { ui } from '$lib/stores/ui.svelte';
   import { LayoutGrid, Table2, Archive } from 'lucide-svelte';

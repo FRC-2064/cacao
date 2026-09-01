@@ -4,7 +4,7 @@
   import { TONE_CHIP } from '$lib/types';
   import SponsorModal from './SponsorModal.svelte';
   import LogOutreachModal from './LogOutreachModal.svelte';
-  import PageHeader from '$lib/components/layout/PageHeader.svelte';
+  import { PageHeader } from '@frc2064/ui';
   import { Plus, Send, Mail, AlertCircle, Clock } from 'lucide-svelte';
   import { fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';

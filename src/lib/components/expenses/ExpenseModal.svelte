@@ -1,9 +1,7 @@
 <script lang="ts">
   import type { Expense, ExpenseCategory, ExpenseStatus, PaymentMethod, CarrierType, DeliveryStatus } from '$lib/types';
   import { cacao } from '$lib/stores/cacaoStore.svelte';
-  import M3Modal from '$lib/components/m3/M3Modal.svelte';
-  import M3Input from '$lib/components/m3/M3Input.svelte';
-  import M3Select from '$lib/components/m3/M3Select.svelte';
+  import { M3Modal, M3Input, M3Select } from '@frc2064/ui';
   import { Plus, Receipt, Trash2, ShoppingCart } from 'lucide-svelte';
   import DonorNameInput from '$lib/components/donors/DonorNameInput.svelte';
   import { EXPENSE_FORM_CATEGORIES, EXPENSE_CATEGORY_META } from '$lib/finance/categories';

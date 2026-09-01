@@ -3,7 +3,7 @@
   import Toast from '$lib/components/layout/Toast.svelte';
   import SiteHeader from '$lib/components/layout/SiteHeader.svelte';
   import BottomNav from '$lib/components/layout/BottomNav.svelte';
-  import ScrollToTop from '$lib/components/layout/ScrollToTop.svelte';
+  import { ScrollToTop } from '@frc2064/ui';
   import UserProfileModal from '$lib/components/layout/UserProfileModal.svelte';
   import { ui } from '$lib/stores/ui.svelte';
   import { page } from '$app/state';

@@ -7,8 +7,7 @@
     type DonorTotals,
     type GiftSource
   } from '$lib/finance/donors';
-  import PageHeader from '$lib/components/layout/PageHeader.svelte';
-  import M3Input from '$lib/components/m3/M3Input.svelte';
+  import { PageHeader, M3Input } from '@frc2064/ui';
   import { Download, RefreshCw, ChevronRight } from 'lucide-svelte';
   import { fade, fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';

@@ -18,7 +18,7 @@
     type DateRangePreset
   } from '$lib/finance/dates';
   import LogDepositModal from './LogDepositModal.svelte';
-  import PageHeader from '$lib/components/layout/PageHeader.svelte';
+  import { PageHeader } from '@frc2064/ui';
   import {
     Plus,
     Download,

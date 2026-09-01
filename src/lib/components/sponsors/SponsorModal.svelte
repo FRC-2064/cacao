@@ -1,9 +1,7 @@
 <script lang="ts">
   import type { Sponsor, SponsorTier, SponsorCategory, SponsorStatus } from '$lib/types';
   import { cacao } from '$lib/stores/cacaoStore.svelte';
-  import M3Modal from '$lib/components/m3/M3Modal.svelte';
-  import M3Input from '$lib/components/m3/M3Input.svelte';
-  import M3Select from '$lib/components/m3/M3Select.svelte';
+  import { M3Modal, M3Input, M3Select } from '@frc2064/ui';
   import { Save } from 'lucide-svelte';
 
   interface Props {

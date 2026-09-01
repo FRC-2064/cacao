@@ -1,7 +1,7 @@
 <script lang="ts">
   import SponsorsList from '$lib/components/sponsors/SponsorsList.svelte';
   import ContactsView from '$lib/components/contacts/ContactsView.svelte';
-  import SegmentedToggle from '$lib/components/layout/SegmentedToggle.svelte';
+  import { SegmentedToggle } from '@frc2064/ui';
   import { Handshake, Contact } from 'lucide-svelte';
 
   let view = $state<'sponsors' | 'contacts'>('sponsors');

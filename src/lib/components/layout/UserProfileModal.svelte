@@ -1,10 +1,7 @@
 <script lang="ts">
   import { cacao } from '$lib/stores/cacaoStore.svelte';
   import { theme, type ThemePreference } from '$lib/stores/theme.svelte';
-  import M3Modal from '$lib/components/m3/M3Modal.svelte';
-  import M3Input from '$lib/components/m3/M3Input.svelte';
-  import SegmentedToggle, { type SegmentedOption } from './SegmentedToggle.svelte';
-  import { initialsOf } from './initials';
+  import { M3Modal, M3Input, SegmentedToggle, type SegmentedOption, initialsOf } from '@frc2064/ui';
   import { firstNameProblem } from '../../../../convex/personNames';
   import { goto } from '$app/navigation';
   import { LogOut, Monitor, Moon, ShieldQuestion, Sun } from 'lucide-svelte';
