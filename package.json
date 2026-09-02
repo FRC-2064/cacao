@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite dev --host 0.0.0.0 --port 5173",
     "dev:convex": "convex dev",
-    "sync:test-data": "bash scripts/sync-test-data.sh",
     "build": "vite build",
     "build:vercel": "if [ -n \"$CONVEX_DEPLOY_KEY\" ]; then convex deploy --cmd 'npm run build' --cmd-url-env-var-name PUBLIC_CONVEX_URL; else npm run build; fi",
     "preview": "vite preview",
