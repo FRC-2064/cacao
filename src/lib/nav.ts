@@ -9,9 +9,10 @@ import {
   Users,
   ShieldCheck
 } from 'lucide-svelte';
+import type { NavItem } from '@frc2064/ui';
 import { cacao } from '$lib/stores/cacaoStore.svelte';
 
-export interface NavItem {
+interface NavSource {
   href: string;
   label: string;
   icon: ComponentType;
@@ -20,7 +21,7 @@ export interface NavItem {
   adminOnly?: boolean;
 }
 
-export const NAV_ITEMS: NavItem[] = [
+export const NAV_ITEMS: NavSource[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/grants', label: 'Grants', icon: LayoutGrid },
   { href: '/money', label: 'Money', icon: Wallet, badge: 'expenses' },
@@ -29,25 +30,24 @@ export const NAV_ITEMS: NavItem[] = [
   { href: '/admin', label: 'Admin', icon: ShieldCheck, adminOnly: true }
 ];
 
-export function visibleNavItems(isAdmin: boolean): NavItem[] {
+export function visibleNavItems(isAdmin: boolean): NavSource[] {
   return NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
 }
 
-export function pendingFor(item: NavItem): number {
-  if (item.badge === 'expenses') return cacao.metrics.pendingExpensesCount;
-  return 0;
-}
-
-function normalise(pathname: string): string {
-  return pathname.replace(/\/+$/, '') || '/';
-}
-
 /**
- * Exact match. Every nav destination is now a flat top-level route with no
- * sibling sub-routes (the former Board/Table and Expenses/Deposits/etc.
- * splits are in-page toggles, not routes), so there is no remaining need for
- * a separate prefix-matching variant.
+ * The finished list the shell renders: admin-only entries filtered out for
+ * everyone else, and each badge resolved from a key to a live count.
+ *
+ * The library's NavItem carries a number because what a badge counts is this
+ * app's business, not the design system's.
  */
-export function isActive(pathname: string, href: string): boolean {
-  return normalise(pathname) === href;
+export function navItems(): NavItem[] {
+  return NAV_ITEMS.filter((item) => !item.adminOnly || cacao.currentUser.role === 'admin').map(
+    ({ href, label, icon, badge }) => ({
+      href,
+      label,
+      icon,
+      badge: badge === 'expenses' ? cacao.metrics.pendingExpensesCount : undefined
+    })
+  );
 }

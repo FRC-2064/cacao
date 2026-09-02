@@ -1,13 +1,14 @@
 <script lang="ts">
   import '../styles/app.css';
-  import { Toast, ScrollToTop } from '@frc2064/ui';
-  import SiteHeader from '$lib/components/layout/SiteHeader.svelte';
-  import BottomNav from '$lib/components/layout/BottomNav.svelte';
+  import { SiteHeader, BottomNav, Toast, ScrollToTop, ThemeToggle, initialsOf } from '@frc2064/ui';
+  import wordmark from '@frc2064/ui/assets/wordmark.png';
   import UserProfileModal from '$lib/components/layout/UserProfileModal.svelte';
   import { ui } from '$lib/stores/ui.svelte';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { cacao } from '$lib/stores/cacaoStore.svelte';
+  import { theme } from '$lib/theme';
+  import { navItems } from '$lib/nav';
   import { fly } from 'svelte/transition';
   import { dur, emphasizedDecel } from '@frc2064/ui/motion';
   import type { Snippet } from 'svelte';
@@ -17,6 +18,8 @@
   }
 
   let { children }: Props = $props();
+
+  const items = $derived(navItems());
 
   /**
    * The route gate.
@@ -38,7 +41,44 @@
   class="app-shell flex min-h-screen flex-col"
   style="background: var(--color-surface); color: var(--color-on-surface)"
 >
-  <SiteHeader onopenprofile={() => (ui.isProfileModalOpen = true)} />
+  <SiteHeader {items} pathname={page.url.pathname}>
+    {#snippet brand()}
+      <a
+        href="/dashboard"
+        class="group flex shrink-0 items-center"
+        aria-label="2064 The Panther Project"
+        title="2064 The Panther Project"
+      >
+        <img
+          src={wordmark}
+          alt="2064 Panther Project"
+          class="h-8 w-auto object-contain transition group-hover:opacity-85 sm:h-9"
+          height="36"
+        />
+      </a>
+    {/snippet}
+    {#snippet actions()}
+      {#if cacao.currentUser.role === 'viewer'}
+        <span class="chip chip-sm text-xs font-semibold" title="Viewer mode: editing is disabled">
+          Guest (View-Only)
+        </span>
+      {/if}
+      <ThemeToggle {theme} />
+      <button
+        type="button"
+        onclick={() => (ui.isProfileModalOpen = true)}
+        class="icon-btn"
+        title={`${cacao.currentUser.displayName} — view profile`}
+      >
+        <span
+          class="type-label grid h-9 w-9 place-items-center rounded-full"
+          style="background: var(--color-primary-container); color: var(--color-on-primary-container)"
+        >
+          {initialsOf(cacao.currentUser.displayName)}
+        </span>
+      </button>
+    {/snippet}
+  </SiteHeader>
 
   <!--
     Views rise into place on navigation. Keyed on `pathname` alone, so changing
@@ -59,7 +99,7 @@
   </main>
 
   {#if page.url.pathname !== '/'}
-    <BottomNav />
+    <BottomNav {items} pathname={page.url.pathname} />
     <ScrollToTop />
   {/if}
 
