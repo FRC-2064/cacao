@@ -3,10 +3,7 @@
   import type { UserRole } from '$lib/types';
   import { ACCOUNT_META } from '$lib/finance/categories';
   import { computeBalances, EPOCH_DATE, type AccountBalance } from '$lib/finance/balances';
-  import PageHeader from '$lib/components/layout/PageHeader.svelte';
-  import SegmentedToggle from '$lib/components/layout/SegmentedToggle.svelte';
-  import M3Input from '$lib/components/m3/M3Input.svelte';
-  import { initialsOf } from '$lib/components/layout/initials';
+  import { PageHeader, SegmentedToggle, M3Input, initialsOf } from '@frc2064/ui';
   import { localDay, formatDay, todayISO } from '$lib/finance/dates';
   import {
     History,
@@ -20,7 +17,7 @@
   } from 'lucide-svelte';
   import { fade, fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';
-  import { listItem, listRow } from '$lib/motion';
+  import { listItem, listRow } from '@frc2064/ui/motion';
 
   let view = $state<'verification' | 'users' | 'log'>('verification');
 

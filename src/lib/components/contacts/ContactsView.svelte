@@ -2,11 +2,11 @@
   import { cacao } from '$lib/stores/cacaoStore.svelte';
   import type { Contact } from '$lib/types';
   import ContactModal from './ContactModal.svelte';
-  import PageHeader from '$lib/components/layout/PageHeader.svelte';
+  import { PageHeader } from '@frc2064/ui';
   import { Plus, Mail, Phone, Building2, Pencil } from 'lucide-svelte';
   import { fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';
-  import { listItem } from '$lib/motion';
+  import { listItem } from '@frc2064/ui/motion';
 
   let selectedContactForEdit = $state<Contact | null>(null);
   let isAddModalOpen = $state(false);

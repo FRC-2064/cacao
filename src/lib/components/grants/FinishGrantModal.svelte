@@ -1,8 +1,7 @@
 <script lang="ts">
   import { cacao } from '$lib/stores/cacaoStore.svelte';
   import { GRANT_OUTCOMES, GRANT_OUTCOME_META, TONE_VAR, type Grant, type GrantOutcome } from '$lib/types';
-  import M3Modal from '$lib/components/m3/M3Modal.svelte';
-  import M3Input from '$lib/components/m3/M3Input.svelte';
+  import { M3Modal, M3Input } from '@frc2064/ui';
   import { todayISO } from '$lib/finance/dates';
   import { Check } from 'lucide-svelte';
 

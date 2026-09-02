@@ -125,9 +125,7 @@ export async function resolveDonorByName(
 
   // The fallback matters for a name that normalizes to nothing at all -- a
   // donor written only in non-Latin script, say. Without it every such donor
-  // would collapse onto the empty key and become one row. Kept identical to
-  // `scripts/import/generate.ts`'s registry so an imported donor and a
-  // hand-typed one land on the same row.
+  // would collapse onto the empty key and become one row.
   const normalizedKey = normalizeDonorName(attributable) || attributable.toLowerCase();
 
   // `.first()`, not `.unique()`. Two rows sharing a key would be a bug, but

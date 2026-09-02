@@ -1,14 +1,11 @@
 <script lang="ts">
   import { cacao } from '$lib/stores/cacaoStore.svelte';
   import { WISHLIST_SOURCE_META, TONE_CHIP, type WishlistItem, type WishlistSource } from '$lib/types';
-  import PageHeader from '$lib/components/layout/PageHeader.svelte';
-  import M3Modal from '$lib/components/m3/M3Modal.svelte';
-  import M3Input from '$lib/components/m3/M3Input.svelte';
-  import M3Select from '$lib/components/m3/M3Select.svelte';
+  import { PageHeader, M3Modal, M3Input, M3Select } from '@frc2064/ui';
   import { Plus, Pencil, Trash2, ExternalLink } from 'lucide-svelte';
   import { fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';
-  import { listItem } from '$lib/motion';
+  import { listItem } from '@frc2064/ui/motion';
 
   const items = $derived(cacao.orderedWishlist);
   const isViewer = $derived(cacao.currentUser.role === 'viewer');

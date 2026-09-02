@@ -1,9 +1,7 @@
 <script lang="ts">
   import { cacao } from '$lib/stores/cacaoStore.svelte';
-  import { theme } from '$lib/stores/theme.svelte';
-  import M3Modal from '$lib/components/m3/M3Modal.svelte';
-  import M3Input from '$lib/components/m3/M3Input.svelte';
-  import { initialsOf } from './initials';
+  import { theme } from '$lib/theme';
+  import { M3Modal, M3Input, ThemePicker, initialsOf } from '@frc2064/ui';
   import { firstNameProblem } from '../../../../convex/personNames';
   import { goto } from '$app/navigation';
   import { LogOut, ShieldQuestion } from 'lucide-svelte';
@@ -14,12 +12,6 @@
   }
 
   let { open = $bindable(false), onclose }: Props = $props();
-
-  const themeOptions = [
-    { id: 'light', label: 'Light' },
-    { id: 'dark', label: 'Dark' },
-    { id: 'system', label: 'System' }
-  ] as const;
 
   /**
    * A first name and one letter is the whole of what this app knows about a
@@ -216,18 +208,7 @@
 
     <div>
       <span class="field-label mb-2 block">Appearance</span>
-      <div class="segmented segmented-full">
-        {#each themeOptions as opt}
-          <button
-            type="button"
-            aria-pressed={theme.preference === opt.id}
-            onclick={() => theme.set(opt.id)}
-            class="segmented-item"
-          >
-            {opt.label}
-          </button>
-        {/each}
-      </div>
+      <ThemePicker {theme} />
     </div>
 
     <div class="flex justify-end pt-1">

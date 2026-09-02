@@ -35,6 +35,7 @@
     "vitest": "^3.2.7"
   },
   "dependencies": {
+    "@frc2064/ui": "github:FRC-2064/ui#v0.1.2",
     "convex": "^1.19.4"
   },
   "overrides": {

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { cacao } from '$lib/stores/cacaoStore.svelte';
-  import PageHeader from '$lib/components/layout/PageHeader.svelte';
+  import { PageHeader } from '@frc2064/ui';
   import SankeyFlow from './SankeyFlow.svelte';
   import CategoryBreakdown from './CategoryBreakdown.svelte';
   import AccountBalances from './AccountBalances.svelte';

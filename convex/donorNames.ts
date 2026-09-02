@@ -12,11 +12,7 @@
  *
  * So it lives here instead, and both sides import it. This file is a leaf
  * with no imports at all, deliberately: that is what lets it be reached from
- * a Convex function, from the browser bundle, and from
- * `scripts/import/generate.ts` under Node's type stripping (which needs the
- * explicit `.ts` extension, and so cannot follow a chain that uses
- * extensionless imports). Keep it that way -- add an import here and one of
- * those three stops working.
+ * a Convex function and from the browser bundle alike. Keep it that way.
  *
  * The direction matters and is not arbitrary: the client imports the server's
  * copy, not the other way round. `npm run build`, `npm run check` and the

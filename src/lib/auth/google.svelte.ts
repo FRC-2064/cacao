@@ -26,12 +26,12 @@ const SESSION_KEY = 'cacao_session_v1';
 /**
  * HTTP actions are served from the deployment's `.convex.site` origin, while
  * `PUBLIC_CONVEX_URL` names its `.convex.cloud` websocket origin. Read through
- * `$env/dynamic/public` so a missing variable degrades to local mode at
- * runtime instead of failing the build.
+ * `$env/dynamic/public` so a missing variable is a runtime condition rather
+ * than a build failure.
  */
 const convexSite = (env.PUBLIC_CONVEX_URL ?? '').replace('.convex.cloud', '.convex.site');
 
-/** False in local mode, where there is no deployment to authenticate against. */
+/** False when no deployment is configured to authenticate against. */
 export const isAuthEnabled = convexSite.length > 0;
 
 /** Reactive snapshot of the browser's session, for components to read. */

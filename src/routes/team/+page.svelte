@@ -1,7 +1,7 @@
 <script lang="ts">
   import TeamInfoView from '$lib/components/team/TeamInfoView.svelte';
   import WishlistView from '$lib/components/team/WishlistView.svelte';
-  import SegmentedToggle from '$lib/components/layout/SegmentedToggle.svelte';
+  import { SegmentedToggle } from '@frc2064/ui';
   import { Info, Sparkles } from 'lucide-svelte';
 
   let view = $state<'info' | 'wishlist'>('info');

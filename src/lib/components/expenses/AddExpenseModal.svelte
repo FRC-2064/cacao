@@ -1,9 +1,7 @@
 <script lang="ts">
   import type { ExpenseCategory } from '$lib/types';
   import { cacao } from '$lib/stores/cacaoStore.svelte';
-  import M3Modal from '$lib/components/m3/M3Modal.svelte';
-  import M3Input from '$lib/components/m3/M3Input.svelte';
-  import M3Select from '$lib/components/m3/M3Select.svelte';
+  import { M3Modal, M3Input, M3Select, SegmentedToggle, type SegmentedOption } from '@frc2064/ui';
   import { Plus, ShoppingCart, UserCheck } from 'lucide-svelte';
   import { EXPENSE_FORM_CATEGORIES, EXPENSE_CATEGORY_META } from '$lib/finance/categories';
   import { defaultSeasonId, seasonLabelFor } from '$lib/components/finance/seasons';
@@ -16,6 +14,11 @@
   }
 
   let { open = $bindable(false), initialType = 'purchase', onclose }: Props = $props();
+
+  const requestTypeOptions: SegmentedOption[] = [
+    { value: 'purchase', label: 'Purchase Request', icon: ShoppingCart },
+    { value: 'reimbursement', label: 'Reimbursement Request', icon: UserCheck }
+  ];
 
   let requestType = $state<'purchase' | 'reimbursement'>('purchase');
   let title = $state('');
@@ -127,26 +130,13 @@
   maxWidth="lg"
 >
   <div class="mb-4">
-    <div class="segmented w-full">
-      <button
-        type="button"
-        class="segmented-item flex-1 justify-center"
-        class:is-active={requestType === 'purchase'}
-        onclick={() => (requestType = 'purchase')}
-      >
-        <ShoppingCart size={16} />
-        <span>Purchase Request</span>
-      </button>
-      <button
-        type="button"
-        class="segmented-item flex-1 justify-center"
-        class:is-active={requestType === 'reimbursement'}
-        onclick={() => (requestType = 'reimbursement')}
-      >
-        <UserCheck size={16} />
-        <span>Reimbursement Request</span>
-      </button>
-    </div>
+    <SegmentedToggle
+      options={requestTypeOptions}
+      value={requestType}
+      onchange={(v) => (requestType = v as 'purchase' | 'reimbursement')}
+      class="segmented-full"
+      ariaLabel="Request type"
+    />
   </div>
 
   <form

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { cacao } from '$lib/stores/cacaoStore.svelte';
-  import M3Modal from '$lib/components/m3/M3Modal.svelte';
+  import { M3Modal } from '@frc2064/ui';
   import {
     HCB_INCOME_CATEGORIES,
     HCB_EXPENSE_CATEGORIES,

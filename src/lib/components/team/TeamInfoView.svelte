@@ -1,13 +1,11 @@
 <script lang="ts">
   import { cacao } from '$lib/stores/cacaoStore.svelte';
   import type { TeamInfoField } from '$lib/types';
-  import PageHeader from '$lib/components/layout/PageHeader.svelte';
-  import M3Modal from '$lib/components/m3/M3Modal.svelte';
-  import M3Input from '$lib/components/m3/M3Input.svelte';
+  import { PageHeader, M3Modal, M3Input } from '@frc2064/ui';
   import { Plus, Copy, Check, Pencil, Trash2, ChevronUp, ChevronDown } from 'lucide-svelte';
   import { fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';
-  import { listItem } from '$lib/motion';
+  import { listItem } from '@frc2064/ui/motion';
 
   const fields = $derived(cacao.orderedTeamInfo);
   const isAdmin = $derived(cacao.currentUser.role === 'admin');

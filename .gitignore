@@ -1,5 +1,4 @@
 node_modules/
-node_modules
 .svelte-kit/
 build/
 .vercel/
@@ -11,32 +10,14 @@ build/
 # Agent tooling
 .claude/
 .agents/
+.superpowers/
 skills-lock.json
 
-# Production data snapshots. These contain every student email the
-# PII removal exists to delete -- never commit one.
+# This repository is public, and everything below carries real names, emails
+# and phone numbers. Production snapshots, the team's raw sheet exports, and
+# the seed payload generated from them: all cutover scaffolding whose
+# generator and import panel are gone, kept only as local rules so a stray
+# copy cannot be committed.
 snapshots/
-
-# The team's raw sheet exports, and the seed payload generated from them.
-# Both were cutover scaffolding: the generator and the import panel are gone
-# (Task 11, Step 12) and the data now lives in Convex. These rules stay so a
-# stray copy cannot be committed -- this repository is public, and the exports
-# carry a mentor's cell number and personal email and fourteen students' names.
-scripts/import/data/
-src/lib/data/ -- checking the inputs in defeated the point.
-# Keep them locally to re-run the generator; do not commit them.
-scripts/import/data/
-
-# The generated seed payload. This is a one-time import file, not app data:
-# after the cutover the contacts live in Convex and this is a second copy of
-# them, holding 31 sponsor contacts with emails, phone numbers and addresses.
-# Nothing the app serves to a user reads it -- only the import panel, the
-# generator, and their tests -- so it stays local, and the whole import
-# scaffold is deleted once the import has run (Task 11, Step 12).
-src/lib/data/teamData.ts
-
-# Agent working notes: task briefs, reports and the running ledger. These
-# quote the very data the rest of this file exists to keep out -- a mentor's
-# phone number and email, student surnames -- because that is what the reviews
-# were about. Never commit them.
-.superpowers/
+scripts/import/
+src/lib/data/

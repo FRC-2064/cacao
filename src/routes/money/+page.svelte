@@ -2,7 +2,7 @@
   import ExpensesList from '$lib/components/expenses/ExpensesList.svelte';
   import DepositsList from '$lib/components/deposits/DepositsList.svelte';
   import DonorsList from '$lib/components/donors/DonorsList.svelte';
-  import SegmentedToggle from '$lib/components/layout/SegmentedToggle.svelte';
+  import { SegmentedToggle } from '@frc2064/ui';
   import { Receipt, Landmark, HeartHandshake } from 'lucide-svelte';
 
   let view = $state<'expenses' | 'deposits' | 'donors'>('expenses');

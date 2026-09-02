@@ -18,7 +18,7 @@
     type DateRangePreset
   } from '$lib/finance/dates';
   import LogDepositModal from './LogDepositModal.svelte';
-  import PageHeader from '$lib/components/layout/PageHeader.svelte';
+  import { PageHeader } from '@frc2064/ui';
   import {
     Plus,
     Download,
@@ -32,7 +32,7 @@
   } from 'lucide-svelte';
   import { fade, fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';
-  import { listItem, listRow } from '$lib/motion';
+  import { listItem, listRow } from '@frc2064/ui/motion';
 
   let selectedDepositForEdit = $state<IncomeDeposit | null>(null);
   let isAddDepositModalOpen = $state(false);

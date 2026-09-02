@@ -1,9 +1,7 @@
 <script lang="ts">
   import type { Grant, RequirementItem } from '$lib/types';
   import { cacao, type GrantEdit } from '$lib/stores/cacaoStore.svelte';
-  import M3Drawer from '$lib/components/m3/M3Drawer.svelte';
-  import M3Input from '$lib/components/m3/M3Input.svelte';
-  import M3Select from '$lib/components/m3/M3Select.svelte';
+  import { M3Drawer, M3Input, M3Select } from '@frc2064/ui';
   import { seasonIdOptions } from '$lib/components/finance/seasons';
   import { Check, Plus, Trash2, Save, Flag } from 'lucide-svelte';
 

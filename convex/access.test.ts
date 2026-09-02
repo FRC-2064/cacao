@@ -413,9 +413,9 @@ test('income.list maps accountId back to the hcb_bank slug as depositAccount, no
 });
 
 /**
- * Task 9 converted six list queries to explicit allowlists; the brief that
- * drove it named six of the eight that exist. These three are the remainder.
- * `accounts.list` and `teamInfo.list` were unauthenticated `.collect()` calls
+ * The three list queries left over when the rest were converted to explicit
+ * allowlists. `accounts.list` and `teamInfo.list` were unauthenticated
+ * `.collect()` calls
  * returning whole documents, and `audit.list` spread the raw row alongside the
  * name it had just resolved. An opaque id is not a name, but it still lets a
  * reader correlate one person's every edit, and one unconverted query makes

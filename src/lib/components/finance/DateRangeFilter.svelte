@@ -1,5 +1,5 @@
 <script lang="ts">
-  import M3Input from '$lib/components/m3/M3Input.svelte';
+  import { M3Input } from '@frc2064/ui';
   import { DATE_PRESETS, type DateRangePreset } from '$lib/finance/dates';
   import { slide } from 'svelte/transition';
 

@@ -236,9 +236,9 @@ export interface Sponsor {
    */
   primaryContactId?: string;
   /**
-   * Outreach history. Stored in its own `sponsorOutreach` table since Task 6
-   * -- Convex indexes only top-level fields, so as an embedded array "who did
-   * we contact in 2024?" could not be asked across sponsors -- but
+   * Outreach history. Stored in its own `sponsorOutreach` table -- Convex
+   * indexes only top-level fields, so as an embedded array "who did we
+   * contact in 2024?" could not be asked across sponsors -- but
    * `sponsors.list` still joins it back onto the parent row, so the client
    * shape is unchanged. Writes go to the outreach table, not through here.
    */
@@ -344,6 +344,7 @@ export type AuditAction =
   | 'reject_user'
   | 'graduate_batch'
   | 'outreach_logged'
+  // Read-only history: see the note on `auditActionValidator`.
   | 'import_seed';
 
 export type EntityType = 'grant' | 'sponsor' | 'contact' | 'user' | 'team_info' | 'wishlist' | 'system';
@@ -419,13 +420,11 @@ export const GRANT_COLUMNS: ColumnDefinition[] = [
 ];
 
 /**
- * Board columns are the pipeline only. A finished grant is not a column you
- * drag into -- it is an outcome you record, because recording an award also
- * has to put the money in the books.
+ * A status a grant can actually be dragged into. Board columns are the
+ * pipeline only: a finished grant is not a column you drag into, it is an
+ * outcome you record, because recording an award also has to put the money in
+ * the books.
  */
-export const GRANT_BOARD_STATUSES: GrantStatus[] = GRANT_COLUMNS.map((c) => c.id);
-
-/** A status a grant can actually be dragged into. */
 export type BoardGrantStatus = Exclude<GrantStatus, GrantOutcome>;
 
 /** CSS custom property holding the fill color for a tone (dots, bars, icons). */

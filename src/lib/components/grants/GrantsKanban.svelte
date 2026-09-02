@@ -8,11 +8,11 @@
     type BoardGrantStatus
   } from '$lib/types';
   import GrantCard from './GrantCard.svelte';
-  import PageHeader from '$lib/components/layout/PageHeader.svelte';
+  import { PageHeader } from '@frc2064/ui';
   import { Plus } from 'lucide-svelte';
   import { fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';
-  import { listItem } from '$lib/motion';
+  import { listItem } from '@frc2064/ui/motion';
 
   interface Props {
     onselectgrant: (grant: Grant) => void;

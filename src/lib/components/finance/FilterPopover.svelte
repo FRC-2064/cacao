@@ -2,7 +2,7 @@
   import type { Snippet } from 'svelte';
   import { SlidersHorizontal, X } from 'lucide-svelte';
   import { fly } from 'svelte/transition';
-  import { dur, emphasizedDecel } from '$lib/motion';
+  import { dur, emphasizedDecel } from '@frc2064/ui/motion';
 
   interface Props {
     /**

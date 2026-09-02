@@ -11,9 +11,9 @@ const libAlias = { $lib: fileURLToPath(new URL('./src/lib', import.meta.url)) };
  * Serving them as virtual modules keeps the auth module importable without a
  * pair of stub files sitting next to real source.
  *
- * `convexUrl` is a parameter because it is what decides which of the two modes
- * a module under test comes up in: the auth module needs a deployment to talk
- * to, while the store's local mode is defined by there being none.
+ * `convexUrl` is a parameter because the two projects want opposite answers:
+ * the auth module needs a deployment to talk to, and the store project wants
+ * none so that no socket is opened.
  */
 const svelteKitStubs = (convexUrl: string): Plugin => ({
   name: 'sveltekit-env-stubs',
@@ -35,19 +35,11 @@ export default defineConfig({
     projects: [
       {
         // Pure TypeScript modules — no Convex runtime and no Svelte compiler
-        // needed. `src/lib/components` is in here for the plain `.ts` files
-        // that sit beside components: the seed-import payload builder is
-        // logic a component calls, not a component, and it is worth testing
-        // precisely because the mutation it feeds cannot be exercised here.
-        // The `$lib` alias is needed because those tests import the dataset.
+        // needed.
         resolve: { alias: libAlias },
         test: {
           name: 'unit',
-          include: [
-            'src/lib/finance/**/*.test.ts',
-            'src/lib/components/**/*.test.ts',
-            'scripts/import/**/*.test.ts'
-          ],
+          include: ['src/lib/finance/**/*.test.ts'],
           environment: 'node'
         }
       },
@@ -72,10 +64,12 @@ export default defineConfig({
       },
       {
         // The store, likewise a `.svelte.ts` file. Deliberately given no
-        // `PUBLIC_CONVEX_URL`, so it comes up in local mode: opening a live
-        // websocket to a deployment that does not exist is not something a
-        // unit test should do, and every behaviour asserted here (the
-        // migration purge, the season filters) is client-side arithmetic.
+        // `PUBLIC_CONVEX_URL`: `getConvexClient` then returns null and the
+        // constructor opens no websocket, which is not something a unit test
+        // should do. Everything asserted here -- the migration purge, the
+        // season filters -- is client-side and needs no deployment.
+        // `cacaoStore.mutations.test.ts` next door stubs the client module
+        // instead, because the write path is what it is testing.
         plugins: [svelteKitStubs(''), svelte()],
         resolve: { alias: libAlias },
         test: {
