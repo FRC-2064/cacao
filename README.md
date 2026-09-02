@@ -4,8 +4,21 @@ Grants, sponsors, expenses and contacts for **FRC Team 2064 (The Panther
 Project)**. Internal tool, live at
 [finance.2064.team](https://finance.2064.team).
 
-SvelteKit 2 · Svelte 5 runes · Tailwind v4 over a hand-written Material 3
-layer · Convex · Vercel.
+SvelteKit 2 · Svelte 5 runes · Tailwind v4 over
+[`@frc2064/ui`](https://github.com/FRC-2064/ui) · Convex · Vercel.
+
+## Design system
+
+The Material 3 layer -- tokens, motion, and every shared component -- lives in
+[`@frc2064/ui`](https://github.com/FRC-2064/ui) and is shared with the team's
+other web apps. Change it there, tag a release, and bump the dependency here.
+Nothing in `src/styles/app.css` beyond its two imports belongs to this app.
+
+The dependency is pinned to a tag rather than a branch, so a change to the
+library cannot alter this app until someone bumps it deliberately. Note that
+npm 12 refuses git dependencies by default; `.npmrc` sets `allow-git=root`,
+which permits the ones this project declares itself and nothing a transitive
+dependency might pull in. Without it `npm install` fails with `EALLOWGIT`.
 
 ## Getting started
 
